@@ -37,15 +37,15 @@ CREATE TABLE cours (
 cours_code VARCHAR(10) NOT NULL PRIMARY KEY,
 intitulé_cours VARCHAR(50) NOT NULL,
 code_sem INT NOT NULL,
-FOREIGN KEY (code_sem) REFERENCES semestre(sem_code)
+FOREIGN KEY (code_sem) REFERENCES semestre(code_sem)
 );
 
 CREATE TABLE evaluer (
 evaluation INT NOT NULL ,
 commentaire TEXT NOT NULL,
 matricule INT NOT NULL ,
-cours_code INT NOT NULL,
-FOREIGN KEY(matricule) REFERENCES etudiants(mtricule),
+cours_code VARCHAR(50) NOT NULL,
+FOREIGN KEY(matricule) REFERENCES etudiants(matricule),
 FOREIGN KEY(cours_code) REFERENCES cours(cours_code)
 
 );
