@@ -19,7 +19,7 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST">
+    <form method="POST" action="{{ url_for('signup') }}">
         <label for="username">Matricule</label>
         <input type="text" id="matricule" name="matricule" value="{{ request.form['matricule'] if request.form.get('matricule') else '' }}" required>
         <br>
@@ -41,7 +41,13 @@
         <br>
 
         <label for="code_dep">code dep:</label>
-        <input type="number" id="code_dep" name="code_dep" value="{{ request.form['code_dep'] if request.form.get('code_dep') else '' }}" min="0" required>
+        <select name="code_dep">
+            {% for departement in departements %}
+            <option value="{{ departement[0] }}"> {{ departement[1] }} </option>
+            {% endfor %}
+
+        </select>
+
         <br>
 
         <label for="mot_de_pass">mot de pass:</label>

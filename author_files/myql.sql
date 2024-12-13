@@ -164,7 +164,22 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 SELECT * FROM niveau;
 SELECT * FROM DEPARTEMENT;
 SELECT * FROM semestre;
-SELECT COUNT(*) FROM cours;
+SELECT * FROM cours ORDER BY code_sem;
+SELECT * FROM etudiants ;
 
-SELECT count(*) FROM cours WHERE (cours_code LIKE "SDID%" OR cours_code NOT LIKE "SEA%") AND code_sem = 5;
-
+SELECT 
+    c.cours_code,
+    c.intitulé_cours,
+    s.intitulé_sem,
+    d.intitulé_dep
+FROM 
+    cours c
+JOIN 
+    semestre s ON c.code_sem = s.code_sem
+JOIN 
+    departement d ON s.code_niv = d.code_niv
+JOIN 
+    etudiants e ON e.code_dep = d.code_dep
+WHERE 
+	(c.cours_code LIKE "SDID%" OR c.cours_code NOT LIKE "SEA%") AND
+    e.matricule = 23618;  -- Replace ? with the student's matricule 

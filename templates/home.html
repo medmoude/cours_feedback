@@ -3,10 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
 </head>
 <body>
-hello from naji med lemine
-<a href="{{ url_for('signup') }}">Signup</a>
-<a href="{{ url_for('login') }}">login</a>
+<a href="{{ url_for('logout') }}">Logout</a> <br>
+{{session['user_id']}}
+
+<table>
+    <tr>
+        <th>cod du cours</th>
+        <th>intitulé du cours</th>
+        <th>code du semester</th>
+    </tr>
+    {% for cour in cours %}
+    <tr>
+        <td>{{ cour[0] }}</td>
+        <td>{{ cour[1] }}</td>
+        <td>{{ cour[2] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
 </body>
 </html>
