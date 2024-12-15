@@ -30,12 +30,13 @@ td {
     color: #333;
     font-weight: bold;
     border-radius: 5px;
+    padding: 5px;
 
 }
 
 .button_remplire a {
     text-decoration: none;
-    color: #333
+    color: #333;
 }
 
 .button_remplire :hover{

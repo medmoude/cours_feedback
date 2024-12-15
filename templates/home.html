@@ -26,7 +26,7 @@
             <td>{{ cour[1] }}</td>
             <td>
             {% if cour[0] in evaluated_courses %}
-            <button class="button_remplire disabled" style="background-color: gray; cursor: not-allowed;">Évalué</button>
+            <button class="button_remplire disabled">Évalué</button>
             {% else %}
             <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
             {% endif %}
