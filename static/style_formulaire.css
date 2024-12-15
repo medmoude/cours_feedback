@@ -1,0 +1,63 @@
+
+body {
+    background-color: #345c3f;
+    color: #f4f4f4; 
+    font-family: Arial, sans-serif;
+}
+
+h2{
+    color:#345c3f;
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin: auto;
+}
+
+h1 {
+    color: #f4f4f4; /* Keeping headers light */
+}
+
+
+label {
+    color: #f4f4f4; 
+}
+
+
+input[type="radio"] {
+    margin-right: 10px;
+}
+
+
+button {
+    background-color: #f4f4f4; 
+    color: #345c3f; 
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+
+button:hover {
+    background-color: #e2e2e2;
+}
+
+
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    color: #345c3f;
+    border: 1px solid #ddd;
+    font-size: 16px;
+}
+
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}

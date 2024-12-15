@@ -45,6 +45,7 @@ evaluation INT NOT NULL ,
 commentaire TEXT NOT NULL,
 matricule INT NOT NULL ,
 cours_code VARCHAR(50) NOT NULL,
+PRIMARY KEY(matricule, cours_code),
 FOREIGN KEY(matricule) REFERENCES etudiants(matricule),
 FOREIGN KEY(cours_code) REFERENCES cours(cours_code)
 
@@ -157,29 +158,34 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ;
 
 
-
-
-
-
 SELECT * FROM niveau;
-SELECT * FROM DEPARTEMENT;
+SELECT * FROM departement;
 SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
 SELECT * FROM etudiants ;
+SELECT * FROM evaluer;
 
-SELECT 
-    c.cours_code,
-    c.intitulé_cours,
-    s.intitulé_sem,
-    d.intitulé_dep
-FROM 
-    cours c
-JOIN 
-    semestre s ON c.code_sem = s.code_sem
-JOIN 
-    departement d ON s.code_niv = d.code_niv
-JOIN 
-    etudiants e ON e.code_dep = d.code_dep
-WHERE 
-	(c.cours_code LIKE "SDID%" OR c.cours_code NOT LIKE "SEA%") AND
-    e.matricule = 23618;  -- Replace ? with the student's matricule 
+        
+SELECT cours_code, intitulé_cours
+FROM etudiants
+JOIN departement ON etudiants.code_dep = departement.code_dep
+JOIN niveau ON departement.code_niv = niveau.code_niv
+JOIN semestre ON niveau.code_niv = semestre.code_niv
+JOIN cours ON semestre.code_sem = cours.code_sem
+WHERE etudiants.matricule = 23615 
+  AND (
+	niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
+    -- If student is from SEA, exclude courses starting with SDID
+    OR
+    (departement.intitulé_dep LIKE 'SEA%' AND cours.cours_code NOT LIKE 'SDID%')
+    -- If student is from SDID, exclude courses starting with SEA
+    OR
+    (departement.intitulé_dep LIKE 'SDID%' AND cours.cours_code NOT LIKE 'SEA%')
+  );
+  
+  
+  SELECT matricule, nom, prenom, email, intitulé_dep
+  FROM etudiants 
+  JOIN departement ON etudiants.code_dep = departement.code_dep
+  WHERE etudiants.matricule = 23618;
+  ;

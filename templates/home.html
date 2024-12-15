@@ -6,23 +6,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
 </head>
 <body>
-<a href="{{ url_for('logout') }}">Logout</a> <br>
-{{session['user_id']}}
+    <ul class="nav-bar">
+        <li> Bienvenue, {{ session['user_nom'] }} </li>
+        <li> <a href=" /profile/{{ session['user_id'] }} ">Profile</a> </li>
+        <li> <a href="{{ url_for('logout') }}" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Logout</a> <br> </li>
+    </ul>
+    
+    <h2>les qeustionnaires</h2>
 
-<table>
-    <tr>
-        <th>cod du cours</th>
-        <th>intitulé du cours</th>
-        <th>code du semester</th>
-    </tr>
-    {% for cour in cours %}
-    <tr>
-        <td>{{ cour[0] }}</td>
-        <td>{{ cour[1] }}</td>
-        <td>{{ cour[2] }}</td>
-    </tr>
-    {% endfor %}
-</table>
+    <table>
+        <tr>
+            <th>intitulé du cours</th>
+            <th>remplire</th>
+        </tr>
+        
+        {% for cour in cours %}
+        <tr>
+            <td>{{ cour[1] }}</td>
+            <td>
+            {% if cour[0] in evaluated_courses %}
+            <button class="button_remplire disabled" style="background-color: gray; cursor: not-allowed;">Évalué</button>
+            {% else %}
+            <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
+            {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
 
 </body>
 </html>

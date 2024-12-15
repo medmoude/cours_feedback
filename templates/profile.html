@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" >
+    <title>Profile d'étudiant</title>
+</head>
+<body>
+    <div class="container_profile">
+
+        <h2>Votre profile </h2>
+
+        <table>
+            <tr>
+                <td>Matricule </td>
+                <td> {{ user_data[0] }} </td>
+            </tr>
+
+            <tr>
+                <td>Nom  </td>
+                <td>{{ user_data[1] }} </td>
+            </tr>
+
+            <tr>
+                <td>Prénom  </td>
+                <td>{{ user_data[2] }} </td>
+            </tr>
+
+            <tr>
+                <td>Email </td>
+                <td>{{ user_data[3] }} </td>
+            </tr>
+
+            <tr>
+                <td>Departement</td>
+                <td>{{ user_data[4] }} </td>
+            </tr>
+
+        </table>
+
+        <form action="/modifier_profile_rec/{{ user_data[0] }}" method="POST">
+            <button class="modifier_profile" type="submit">Modifier</button>
+        </form>
+    </div>
+</body>
+</html>

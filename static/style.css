@@ -1,8 +1,206 @@
-table, th, td {
-border : 1px solid black;
-border-collapse : collapse
+
+table {
+    background-color: #333;
+    color: white;
+    max-width: 600px;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
 }
 
-*{
-color : green
+
+th {
+    background-color: white; 
+    color: #333;
+    padding: 10px;
+    text-align: left;
+}
+
+
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+
+.button_remplire  {
+    text-decoration: none;
+    background-color: white;
+    color: #333;
+    font-weight: bold;
+    border-radius: 5px;
+
+}
+
+.button_remplire a {
+    text-decoration: none;
+    color: #333
+}
+
+.button_remplire :hover{
+    color: green;
+}
+
+
+body{
+    background-color: #345c3f;
+}
+
+.container_login{
+background-color: white;
+max-width: 400px;
+height: 300px;
+margin: auto;
+margin-top: 100px;
+padding-top : 40px;
+border-radius: 5px;
+}
+
+.container_signup{
+    background-color: white;
+    max-width: 400px;
+    height: 480px;
+    margin: auto;
+    margin-top: 15px;
+    padding-top : 20px;
+    border-radius: 5px;
+}
+
+h2{
+margin : 0px auto 10px;
+width: 300px;
+text-align: center;
+background-color: white;
+color : #333;
+padding: 5px;
+border-radius: 10px;
+}
+
+form{
+    margin: auto;
+    text-align: center;
+    border-radius: 5px;
+}
+
+input{
+    width: 200px;
+    height: 20px;
+    margin-bottom : 20px;
+    border-bottom: 1px solid black;
+    border-radius: 5px;
+}
+
+label{
+    margin-left: -150px;
+}
+
+.button_login, .button_signup, .button_modifier{
+    color:#333;
+    background-color: #65db84;
+    padding: 7px;
+    border: 1px solid black;
+    border-radius: 3px;
+    font-weight: bold;
+    margin-bottom: 7px;
+    cursor: pointer;
+}
+
+
+/* General styling for the navigation bar */
+.nav-bar {
+    list-style-type: none;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333;
+    margin: 0;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.nav-bar li:first-child {
+    margin-right: auto;
+}
+
+.nav-bar li {
+    margin-right: 20px; /* Space between items */
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: white;
+}
+
+/* Styling for links */
+.nav-bar a {
+    text-decoration: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+/* Hover effect for links */
+.nav-bar a:hover {
+    background-color: #555;
+}
+
+/* Styling for the profile and logout link */
+.nav-bar li:last-child {
+    margin-right: 0; /* Remove margin from the last item */
+}
+
+
+/*profile */
+
+.container_profile{
+    max-width: 600px;
+    height: 400px;
+    text-align: center;
+    padding-top: 40px;
+    background-color: #333;
+    margin : 40px auto;
+    border-radius: 5px;
+}
+
+.container_profile table{
+    font-weight: bold;
+    background-color: white;
+    color: #333;
+    border-radius: 5px;
+}
+
+.modifier_profile  {
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    padding-top : 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+/* flashed messages */
+.success {
+    color: green;
+    text-align: center;
+    text-align: center;
+    list-style-type:none;
+    background-color: yellow;
+    margin-left : -40px;
+}
+
+.error {
+    color: rgb(190, 71, 71);
+    text-align: center;
+    list-style-type:none;
+    background-color: yellow;
+    margin-left : -40px;
+}
+
+button.disabled {
+    pointer-events: none;
+    background-color: darkgreen;
+    color: white;
+    width: 100%;
 }

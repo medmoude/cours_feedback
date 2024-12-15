@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_formulaire.css')}}">
+    <title>Évaluation du Cours</title>
+
+</head>
+<body>
+    <h2>le cours : {{cours [1]}} </h2>
+    <div class="container">
+        <h1>Évaluation du Cours</h1>
+        <form action="{{ url_for('insert_formulaire', cours_code=cours_code) }}" method="post">
+            <h3>Section 1 : </h3>
+            <div class="question">
+                <p>L'enseignant était organisé, bien préparé et utilisait le temps de cours de manière efficace :</p>
+                <label><input type="radio" name="preparation" value="5" required> Presque toujours</label><br><br>
+                <label><input type="radio" name="preparation" value="4"> Fréquemment</label><br><br>
+                <label><input type="radio" name="preparation" value="3"> Parfois</label><br><br>
+                <label><input type="radio" name="preparation" value="2"> Rarement</label><br><br>
+                <label><input type="radio" name="preparation" value="1"> Presque jamais</label><br><br>
+            </div>
+            <div class="question">
+                <p>2. L'enseignant a montré un réel intérêt à aider les étudiants à apprendre :</p>
+                <label><input type="radio" name="aide_enseignant" value="5"  required> Presque toujours</label><br><br>
+                <label><input type="radio" name="aide_enseignant" value="4"> Fréquemment</label><br><br>
+                <label><input type="radio" name="aide_enseignant" value="3"> Parfois</label><br><br>
+                <label><input type="radio" name="aide_enseignant" value="2"> Rarement</label><br><br>
+                <label><input type="radio" name="aide_enseignant" value="1"> Presque jamais</label><br><br>
+            </div>
+            <div class="question">
+                <p>L'enseignant a utilisé diverses méthodes pour répondre aux différents styles d'apprentissage :</p>
+                <label><input type="radio" name="methodes_enseignement" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="methodes_enseignement" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="methodes_enseignement" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="methodes_enseignement" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="methodes_enseignement" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+            <h3>Section 2 : </h3>
+            <div class="question">
+                <p>Les supports pédagogiques (livres, lectures, polycopiés, guides d'étude, multimédia, logiciels, etc.) ont augmenté mes connaissances et mes compétences dans la matière :</p>
+                <label><input type="radio" name="supports_ped" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="supports_ped" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="supports_ped" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="supports_ped" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="supports_ped" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+            <div class="question">
+                <p>Les examens, projets et devoirs ont mesuré mes connaissances de manière équitable et pertinente :</p>
+                <label><input type="radio" name="methode_evaluation" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="methode_evaluation" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="methode_evaluation" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="methode_evaluation" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="methode_evaluation" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+            <div class="question">
+                <p>J'ai reçu des retours clairs et utiles sur mes travaux (tests, devoirs, projets, etc.) :</p>
+                <label><input type="radio" name="retours_clarite_utilite" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="retours_clarite_utilite" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="retours_clarite_utilite" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="retours_clarite_utilite" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="retours_clarite_utilite" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+
+            <div class="question">
+                <p>Le cours était organisé de manière à m'aider à comprendre les concepts fondamentaux :</p>
+                <label><input type="radio" name="Cours_organisation" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="Cours_organisation" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="Cours_organisation" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="Cours_organisation" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="Cours_organisation" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+
+            <div class="question">
+                <p>Le cours m'a donné la confiance nécessaire pour entreprendre des travaux plus avancés dans la matière :</p>
+                <label><input type="radio" name="Cours_benefices" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="Cours_benefices" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="Cours_benefices" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="Cours_benefices" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="Cours_benefices" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+
+            <div class="question">
+                <p>Les cours, tests et devoirs se complétaient efficacement pour faciliter l'apprentissage :</p>
+                <label><input type="radio" name="efficacite_cours" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="efficacite_cours" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="efficacite_cours" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="efficacite_cours" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="efficacite_cours" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+
+            <div class="question">
+                <p>Je crois que ce que j'ai appris dans ce cours est important et utile :</p>
+                <label><input type="radio" name="importance_utilite" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="importance_utilite" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="importance_utilite" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="importance_utilite" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="importance_utilite" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+            <div class="question">
+                <p>L'environnement d'apprentissage était propice à ma réussite (physique ou en ligne) :</p>
+                <label><input type="radio" name="environnement" value="5"  required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="environnement" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="environnement" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="environnement" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="environnement" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+            <div class="question">
+                <p>La charge de travail du cours était adaptée aux objectifs d'apprentissage :</p>
+                <label><input type="radio" name="statisfaction_des_objectifs" value="5"   required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="statisfaction_des_objectifs" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="statisfaction_des_objectifs" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="statisfaction_des_objectifs" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="statisfaction_des_objectifs" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+
+            <div class="question">
+                <p>Je recommanderais fortement ce cours à d'autres étudiants :</p>
+                <label><input type="radio" name="recommendation" value="5"   required> Tout à fait d'accord</label><br><br>
+                <label><input type="radio" name="recommendation" value="4"> D'accord</label><br><br>
+                <label><input type="radio" name="recommendation" value="3"> Neutre</label><br><br>
+                <label><input type="radio" name="recommendation" value="2"> Pas d'accord</label><br><br>
+                <label><input type="radio" name="recommendation" value="1"> Pas du tout d'accord</label><br><br>
+            </div>
+
+            <div class="question">
+                <p>Évaluez votre expérience globale du cours :</p>
+                <label><input type="radio" name="exp_global" value="5"  required> Excellent</label><br><br>
+                <label><input type="radio" name="exp_global" value="4"> Très bon</label><br><br>
+                <label><input type="radio" name="exp_global" value="3"> Bon</label><br><br>
+                <label><input type="radio" name="exp_global" value="2"> Mauvais</label><br><br>
+                <label><input type="radio" name="exp_global" value="1"> Très mauvais</label><br><br>
+            </div>
+
+
+            <div class="question">
+
+                <p>Quels changements recommendez-vous pour ameliorer ce cours ?</p>
+                <textarea name = "feedback" placeholder="Écrivez ici..."  required></textarea>
+            </div>
+
+
+            <button type="submit">Envoyer</button>
+        </form>
+    </div>
+
+</body>
+</html>
