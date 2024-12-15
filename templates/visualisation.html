@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_visualisation.css') }}" >
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body >
+    <h1 >Données des évaluation</h1>
+    <table border="1">
+        <tr>
+            <th>Cours</th>
+            <th>Evaluation</th>
+        </tr>
+        {% for row in evaluation_data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h4>la moyenne des évaluations des cours</h4>
+    <canvas id="evaluationChart" ></canvas>
+
+    <script>
+        fetch('/chart-data')
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => item[0]);
+                const scores = data.map(item => item[1]);
+    
+                const ctx = document.getElementById('evaluationChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'moyenne des évaluations',
+                            data: scores,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(244, 244, 244, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'rgba(244, 244, 244, 1)' 
+                                },
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.3)' 
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: 'rgba(244, 244, 244, 1)' 
+                                },
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.3)' 
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+    
+</body>
+</html>

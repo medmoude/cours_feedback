@@ -8,6 +8,7 @@
 <body>
     <ul class="nav-bar">
         <li> Bienvenue, {{ session['user_nom'] }} </li>
+        <li> <a href="{{ url_for('visualisation') }}">Statistiques</a> </li>
         <li> <a href=" /profile/{{ session['user_id'] }} ">Profile</a> </li>
         <li> <a href="{{ url_for('logout') }}" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Logout</a> <br> </li>
     </ul>

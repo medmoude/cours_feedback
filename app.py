@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, flash, session
+from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
@@ -12,6 +12,7 @@ mysql = MySQL(app)
 
 def is_logged_in():
     return 'user_id' in session
+
 
 # the main route
 @app.route("/")
@@ -272,11 +273,42 @@ def insert_formulaire(cours_code):
 
         cur = mysql.connection.cursor()
         cur.execute("""
-                INSERT INTO evaluer (matricule, cours_code, evaluation, commentaire) 
-                VALUES (%s, %s, %s, %s)
-            """, (matricule, cours_code, note_final, commentaire))
+            INSERT INTO evaluer (matricule, cours_code, evaluation, commentaire) 
+            VALUES (%s, %s, %s, %s)
+        """, (matricule, cours_code, note_final, commentaire))
         mysql.connection.commit()
         return redirect(url_for('index'))
+
+
+@app.route("/visualisation")
+def visualisation ():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT intitulé_cours, AVG(evaluation) AS avg_evaluation 
+        FROM evaluer 
+        JOIN cours ON evaluer.cours_code = cours.cours_code
+        GROUP BY intitulé_cours;
+    """)
+    evaluation_data = cur.fetchall()
+
+    return render_template('visualisation.html', evaluation_data = evaluation_data)
+
+
+@app.route('/chart-data')
+def chart_data():
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT c.intitulé_cours, AVG(ev.evaluation) AS average_score
+        FROM evaluer ev
+        JOIN cours c ON ev.cours_code = c.cours_code
+        GROUP BY c.intitulé_cours
+    """)
+    chart_data = cur.fetchall()
+    cur.close()
+
+    # Convert data to JSON for chart rendering
+    return jsonify(chart_data)
 
 if __name__ == "__main__":
     app.run(debug=True)

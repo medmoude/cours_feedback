@@ -157,7 +157,7 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ("SEA213", "Management", 5)
 ;
 
-
+#select from all tables 
 SELECT * FROM niveau;
 SELECT * FROM departement;
 SELECT * FROM semestre;
@@ -165,7 +165,7 @@ SELECT * FROM cours ORDER BY code_sem;
 SELECT * FROM etudiants ;
 SELECT * FROM evaluer;
 
-        
+#showing students relevant courses 
 SELECT cours_code, intitulé_cours
 FROM etudiants
 JOIN departement ON etudiants.code_dep = departement.code_dep
@@ -184,8 +184,14 @@ WHERE etudiants.matricule = 23615
   );
   
   
+  
   SELECT matricule, nom, prenom, email, intitulé_dep
   FROM etudiants 
   JOIN departement ON etudiants.code_dep = departement.code_dep
   WHERE etudiants.matricule = 23618;
   ;
+
+SELECT AVG(evaluation) AS avg_evaluation, intitulé_cours 
+FROM evaluer 
+JOIN cours ON evaluer.cours_code = cours.cours_code
+GROUP BY intitulé_cours;
