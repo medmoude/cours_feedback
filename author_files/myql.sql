@@ -27,10 +27,12 @@ matricule INT NOT NULL PRIMARY KEY,
 nom VARCHAR (100) NOT NULL,
 prenom VARCHAR (100) NOT NULL,
 email VARCHAR (50) NOT NULL,
-mot_de_pass VARCHAR(50) NOT NULL,
+mot_de_pass VARCHAR(255) NOT NULL,
 code_dep INT NOT NULL,
 FOREIGN KEY (code_dep) REFERENCES departement(code_dep)
 );
+
+ALTER TABLE etudiants change mot_de_pass mot_de_pass VARCHAR(255) NOT NULL;
 
 
 CREATE TABLE cours (

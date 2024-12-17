@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
@@ -64,6 +65,9 @@ def index():
 # Signup route
 @app.route("/signup", methods=["POST", "GET"])
 def signup():
+    if is_logged_in():
+        return redirect(url_for('index'))
+
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM departement ORDER BY code_niv")
     departements = cur.fetchall()
@@ -76,6 +80,7 @@ def signup():
         code_dep = request.form["code_dep"]
         mot_de_pass = request.form["mot_de_pass"]
         confirm_mot_de_pass = request.form["confirm_mot_de_pass"]
+        hash_mot_de_pass = generate_password_hash(mot_de_pass)
 
         # Verification manual
         if not matricule or not nom or not prenom or not email or not code_dep or not mot_de_pass or not confirm_mot_de_pass:
@@ -108,7 +113,7 @@ def signup():
         cur.execute("""
         INSERT INTO etudiants (matricule, nom, prenom, email, mot_de_pass, code_dep) 
         VALUES (%s, %s, %s, %s, %s, %s)
-        """, (matricule, nom, prenom, email, mot_de_pass, code_dep))
+        """, (matricule, nom, prenom, email, hash_mot_de_pass, code_dep))
         mysql.connection.commit()
 
         flash("Inscription réussie ! Vous pouvez maintenant vous connecter", "success")
@@ -120,6 +125,9 @@ def signup():
 # Login route
 @app.route("/login", methods=["POST", "GET"])
 def login():
+    if is_logged_in():
+        return redirect(url_for('index'))
+
     if request.method == "POST":
         email = request.form["email"]
         mot_de_pass = request.form["mot_de_pass"]
@@ -130,19 +138,25 @@ def login():
 
         # Verify if the email and password exist
         cur = mysql.connection.cursor()
-        cur.execute("SELECT matricule, nom, prenom, email, mot_de_pass FROM etudiants WHERE email = %s AND mot_de_pass = %s",
-                    (email, mot_de_pass))
+        cur.execute("SELECT matricule, nom, prenom, email, mot_de_pass FROM etudiants WHERE email = %s ",
+                    (email, ))
         user = cur.fetchone()
 
         if user:
-            session["user_id"] = user[0]  # Store matricule (user_id) in session
-            session["user_nom"] = user[1]
-            session["user_prenom"] = user[2]
-            flash("login succée", "success")
-            return redirect(url_for("index"))
+            stored_password_hash = user[4]
+
+            if check_password_hash(stored_password_hash, mot_de_pass):
+                session["user_id"] = user[0]  # Store matricule (user_id) in session
+                session["user_nom"] = user[1]
+                session["user_prenom"] = user[2]
+                flash("login succée", "success")
+                return redirect(url_for("index"))
+            else:
+                flash("Mot de passe incorrect", 'error')
+                return render_template("login.html")
 
         else:
-            flash("Email ou mot de passe incorrect", "error")
+            flash("Email introuvable", "error")
             return render_template("login.html")
     return render_template("login.html")
 
