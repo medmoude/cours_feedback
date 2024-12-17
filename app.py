@@ -1,6 +1,8 @@
 from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mysqldb import MySQL
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.secret_key = "medmoud"
@@ -21,8 +23,9 @@ def index():
     if not is_logged_in():
         return redirect(url_for('login'))
 
+    #traitement des semestres impaires
     cur = mysql.connection.cursor()
-    query = """
+    query_sem_impaire = """
     SELECT cours_code, intitulé_cours
     FROM etudiants
     JOIN departement ON etudiants.code_dep = departement.code_dep
@@ -30,6 +33,7 @@ def index():
     JOIN semestre ON niveau.code_niv = semestre.code_niv
     JOIN cours ON semestre.code_sem = cours.code_sem
     WHERE etudiants.matricule = %s
+    AND semestre.code_sem IN (1, 3, 5)
     AND (
         niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
         -- If student is from SEA, exclude courses starting with SDID
@@ -40,14 +44,46 @@ def index():
         (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
     );
     """
+
     if session['user_id']:  # Ensure the user_id is set
         sea_pattern = "SEA%"
         sdid_pattern = "SDID%"
         
-        cur.execute(query, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
-        cours = cur.fetchall()
+        cur.execute(query_sem_impaire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+        cours_sem_impaire = cur.fetchall()
     else:
-        cours = []
+        cours_sem_impaire = []
+
+    #traitement des semestres paire
+    query_sem_paire = """
+    SELECT cours_code, intitulé_cours
+    FROM etudiants
+    JOIN departement ON etudiants.code_dep = departement.code_dep
+    JOIN niveau ON departement.code_niv = niveau.code_niv
+    JOIN semestre ON niveau.code_niv = semestre.code_niv
+    JOIN cours ON semestre.code_sem = cours.code_sem
+    WHERE etudiants.matricule = %s
+    AND semestre.code_sem IN (2, 4, 6)
+    AND (
+        niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
+        -- If student is from SEA, exclude courses starting with SDID
+        OR
+        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+        OR
+        -- If student is from SDID, exclude courses starting with SEA
+        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+    );
+    """
+
+    if session['user_id']:  # Ensure the user_id is set
+        sea_pattern = "SEA%"
+        sdid_pattern = "SDID%"
+        
+        cur.execute(query_sem_paire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+        cours_sem_paire = cur.fetchall()
+    else:
+        cours_sem_paire = []
+    
 
     # Get list of courses the student has already evaluated
     evaluated_courses = set()
@@ -58,8 +94,13 @@ def index():
         evaluated_courses.add(row[0])
 
     cur.close()
+    
+    mois = datetime.now().month
+    if mois in [10, 11, 12, 1, 2]:
+        return render_template("home.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
+    else:
+        return render_template("home.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
 
-    return render_template("home.html", cours=cours, evaluated_courses=evaluated_courses)
 
 
 # Signup route
