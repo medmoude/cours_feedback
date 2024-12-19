@@ -103,66 +103,6 @@ def index():
 
 
 
-# Signup route
-@app.route("/signup", methods=["POST", "GET"])
-def signup():
-    if is_logged_in():
-        return redirect(url_for('index'))
-
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM departement ORDER BY code_niv")
-    departements = cur.fetchall()
-
-    if request.method == "POST":
-        matricule = request.form["matricule"]
-        nom = request.form["nom"]
-        prenom = request.form["prenom"]
-        email = request.form["email"]
-        code_dep = request.form["code_dep"]
-        mot_de_pass = request.form["mot_de_pass"]
-        confirm_mot_de_pass = request.form["confirm_mot_de_pass"]
-        hash_mot_de_pass = generate_password_hash(mot_de_pass)
-
-        # Verification manual
-        if not matricule or not nom or not prenom or not email or not code_dep or not mot_de_pass or not confirm_mot_de_pass:
-            flash('Tous les champs sont obligatoires !', 'error')
-            return render_template("signup.html", departements=departements)
-
-        if confirm_mot_de_pass != mot_de_pass:
-            flash("Les mots de passe ne correspondent pas", "error")
-            return render_template("signup.html", departements=departements)
-
-        if len(mot_de_pass) < 6:
-            flash("Le mot de passe doit comporter au moins 6 caractères.", "error")
-            return render_template("signup.html", departements=departements)
-
-        # Check if matricule exists
-        cur.execute("SELECT * FROM etudiants WHERE matricule = %s", (matricule,))
-        matricule_e = cur.fetchone()
-        if matricule_e:
-            flash("Cette matricule existe déjà", "error")
-            return render_template("signup.html", departements=departements)
-
-        # Check if email exists
-        cur.execute("SELECT * FROM etudiants WHERE email = %s", (email,))
-        email_e = cur.fetchone()
-        if email_e:
-            flash("L'email est déjà enregistré !", "error")
-            return render_template("signup.html", departements=departements)
-
-        # Insert student into the database
-        cur.execute("""
-        INSERT INTO etudiants (matricule, nom, prenom, email, mot_de_pass, code_dep) 
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """, (matricule, nom, prenom, email, hash_mot_de_pass, code_dep))
-        mysql.connection.commit()
-
-        flash("Inscription réussie ! Vous pouvez maintenant vous connecter", "success")
-        return redirect(url_for('login'))
-
-    return render_template('signup.html', departements=departements)
-
-
 # Login route
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -179,22 +119,15 @@ def login():
 
         # Verify if the email and password exist
         cur = mysql.connection.cursor()
-        cur.execute("SELECT matricule, nom, prenom, email, mot_de_pass FROM etudiants WHERE email = %s ",
-                    (email, ))
+        cur.execute("SELECT matricule, nom_prenom, email, mot_de_pass FROM etudiants WHERE email = %s AND mot_de_pass = %s ",
+                    (email, mot_de_pass))
         user = cur.fetchone()
 
         if user:
-            stored_password_hash = user[4]
-
-            if check_password_hash(stored_password_hash, mot_de_pass):
-                session["user_id"] = user[0]  # Store matricule (user_id) in session
-                session["user_nom"] = user[1]
-                session["user_prenom"] = user[2]
-                flash("login succée", "success")
-                return redirect(url_for("index"))
-            else:
-                flash("Mot de passe incorrect", 'error')
-                return render_template("login.html")
+            session["user_id"] = user[0]  # Store matricule (user_id) in session
+            session["user_nom_prenom"] = user[1]
+            flash("login succée", "success")
+            return redirect(url_for("index"))
 
         else:
             flash("Email introuvable", "error")
@@ -216,7 +149,7 @@ def profile(user_id):
         if user_id == str(session['user_id']):
             cur = mysql.connection.cursor()
             cur.execute("""
-                        SELECT matricule, nom, prenom, email, intitulé_dep
+                        SELECT matricule, nom_prenom , email, intitulé_dep
                         FROM etudiants 
                         JOIN departement ON etudiants.code_dep = departement.code_dep
                         WHERE etudiants.matricule = %s ;
@@ -234,7 +167,7 @@ def modifier_profile_rec(user_id):
         if user_id == str(session['user_id']):
             cur1 = mysql.connection.cursor()
             cur1.execute("""
-                    SELECT matricule, nom, prenom, email, intitulé_dep
+                    SELECT matricule, nom_prenom, email, intitulé_dep
                     FROM etudiants 
                     JOIN departement ON etudiants.code_dep = departement.code_dep
                     WHERE etudiants.matricule = %s ;
