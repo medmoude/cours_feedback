@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>index</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
+    <script>
+		WebFont.load({
+			google: {"families":["Public Sans:300,400,500,600,700"]},
+			custom: {"families":["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ["{{ url_for('static', filename = 'assets/css/fonts.min.css') }}"]},
+			active: function() {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style-formulaire.css') }}  ">
+
+  </head>
+  <body>
+    <div class="wrapper">
+
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item ">
+                <a href="{{ url_for('index') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Acueill</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="/profile/{{session['user_id'] }}" class="collapsed" >
+                  <i class="fas fa-user"></i>
+                  <p>profile</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <p>logout</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('changer_mot_de_pass') }}" class="collapsed" >
+                  <i class="fas fa-key"></i>
+                  <p>changer mot de passe</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+    
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+              <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                  <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                  <i class="gg-menu-left"></i>
+                </button>
+              </div>
+              <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+              </button>
+            </div>
+            <!-- End Logo Header -->
+          </div>
+        </div>
+    
+        <div class="container">
+          <div class="page-inner">
+            <div class="page-header">
+              <h4 class="page-title">Formulaire</h4>
+              <ul class="breadcrumbs">
+                <li class="nav-home">
+                  <a href="#">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">Questionnaire</a>
+                </li>
+                <li class="separator">
+                    <i class="icon-arrow-right"></i>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#">Formulaire</a>
+                  </li>
+              </ul>
+            </div>
+            <!-- page category -->
+            <div class="page-category">
+              <!--formulaire-->
+              <h2>le cours : {{cours [1]}} </h2>
+              <div class="container">
+                  <h1>Évaluation du Cours</h1>
+                  <form action="{{ url_for('insert_formulaire', cours_code=cours_code) }}" method="post">
+                      <h3>Section 1 : </h3>
+                      <div class="question">
+                          <p>L'enseignant était organisé, bien préparé et utilisait le temps de cours de manière efficace :</p>
+                          <label><input type="radio" name="preparation" value="5" required> Presque toujours</label>
+                          <label><input type="radio" name="preparation" value="4"> Fréquemment</label>
+                          <label><input type="radio" name="preparation" value="3"> Parfois</label>
+                          <label><input type="radio" name="preparation" value="2"> Rarement</label>
+                          <label><input type="radio" name="preparation" value="1"> Presque jamais</label>
+                      </div>
+                      <div class="question">
+                          <p>2. L'enseignant a montré un réel intérêt à aider les étudiants à apprendre :</p>
+                          <label><input type="radio" name="aide_enseignant" value="5"  required> Presque toujours</label>
+                          <label><input type="radio" name="aide_enseignant" value="4"> Fréquemment</label>
+                          <label><input type="radio" name="aide_enseignant" value="3"> Parfois</label>
+                          <label><input type="radio" name="aide_enseignant" value="2"> Rarement</label>
+                          <label><input type="radio" name="aide_enseignant" value="1"> Presque jamais</label>
+                      </div>
+                      <div class="question">
+                          <p>L'enseignant a utilisé diverses méthodes pour répondre aux différents styles d'apprentissage :</p>
+                          <label><input type="radio" name="methodes_enseignement" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="methodes_enseignement" value="4"> D'accord</label>
+                          <label><input type="radio" name="methodes_enseignement" value="3"> Neutre</label>
+                          <label><input type="radio" name="methodes_enseignement" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="methodes_enseignement" value="1"> Pas du tout d'accord</label>
+                      </div>
+                      <h3>Section 2 : </h3>
+                      <div class="question">
+                          <p>Les supports pédagogiques (livres, lectures, polycopiés, guides d'étude, multimédia, logiciels, etc.) ont augmenté mes connaissances et mes compétences dans la matière :</p>
+                          <label><input type="radio" name="supports_ped" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="supports_ped" value="4"> D'accord</label>
+                          <label><input type="radio" name="supports_ped" value="3"> Neutre</label>
+                          <label><input type="radio" name="supports_ped" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="supports_ped" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+                      <div class="question">
+                          <p>Les examens, projets et devoirs ont mesuré mes connaissances de manière équitable et pertinente :</p>
+                          <label><input type="radio" name="methode_evaluation" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="methode_evaluation" value="4"> D'accord</label>
+                          <label><input type="radio" name="methode_evaluation" value="3"> Neutre</label>
+                          <label><input type="radio" name="methode_evaluation" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="methode_evaluation" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+                      <div class="question">
+                          <p>J'ai reçu des retours clairs et utiles sur mes travaux (tests, devoirs, projets, etc.) :</p>
+                          <label><input type="radio" name="retours_clarite_utilite" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="retours_clarite_utilite" value="4"> D'accord</label>
+                          <label><input type="radio" name="retours_clarite_utilite" value="3"> Neutre</label>
+                          <label><input type="radio" name="retours_clarite_utilite" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="retours_clarite_utilite" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+          
+                      <div class="question">
+                          <p>Le cours était organisé de manière à m'aider à comprendre les concepts fondamentaux :</p>
+                          <label><input type="radio" name="Cours_organisation" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="Cours_organisation" value="4"> D'accord</label>
+                          <label><input type="radio" name="Cours_organisation" value="3"> Neutre</label>
+                          <label><input type="radio" name="Cours_organisation" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="Cours_organisation" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+          
+                      <div class="question">
+                          <p>Le cours m'a donné la confiance nécessaire pour entreprendre des travaux plus avancés dans la matière :</p>
+                          <label><input type="radio" name="Cours_benefices" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="Cours_benefices" value="4"> D'accord</label>
+                          <label><input type="radio" name="Cours_benefices" value="3"> Neutre</label>
+                          <label><input type="radio" name="Cours_benefices" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="Cours_benefices" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+          
+                      <div class="question">
+                          <p>Les cours, tests et devoirs se complétaient efficacement pour faciliter l'apprentissage :</p>
+                          <label><input type="radio" name="efficacite_cours" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="efficacite_cours" value="4"> D'accord</label>
+                          <label><input type="radio" name="efficacite_cours" value="3"> Neutre</label>
+                          <label><input type="radio" name="efficacite_cours" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="efficacite_cours" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+          
+                      <div class="question">
+                          <p>Je crois que ce que j'ai appris dans ce cours est important et utile :</p>
+                          <label><input type="radio" name="importance_utilite" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="importance_utilite" value="4"> D'accord</label>
+                          <label><input type="radio" name="importance_utilite" value="3"> Neutre</label>
+                          <label><input type="radio" name="importance_utilite" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="importance_utilite" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+                      <div class="question">
+                          <p>L'environnement d'apprentissage était propice à ma réussite (physique ou en ligne) :</p>
+                          <label><input type="radio" name="environnement" value="5"  required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="environnement" value="4"> D'accord</label>
+                          <label><input type="radio" name="environnement" value="3"> Neutre</label>
+                          <label><input type="radio" name="environnement" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="environnement" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+                      <div class="question">
+                          <p>La charge de travail du cours était adaptée aux objectifs d'apprentissage :</p>
+                          <label><input type="radio" name="statisfaction_des_objectifs" value="5"   required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="statisfaction_des_objectifs" value="4"> D'accord</label>
+                          <label><input type="radio" name="statisfaction_des_objectifs" value="3"> Neutre</label>
+                          <label><input type="radio" name="statisfaction_des_objectifs" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="statisfaction_des_objectifs" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+          
+                      <div class="question">
+                          <p>Je recommanderais fortement ce cours à d'autres étudiants :</p>
+                          <label><input type="radio" name="recommendation" value="5"   required> Tout à fait d'accord</label>
+                          <label><input type="radio" name="recommendation" value="4"> D'accord</label>
+                          <label><input type="radio" name="recommendation" value="3"> Neutre</label>
+                          <label><input type="radio" name="recommendation" value="2"> Pas d'accord</label>
+                          <label><input type="radio" name="recommendation" value="1"> Pas du tout d'accord</label>
+                      </div>
+          
+                      <div class="question">
+                          <p>Évaluez votre expérience globale du cours :</p>
+                          <label><input type="radio" name="exp_global" value="5"  required> Excellent</label>
+                          <label><input type="radio" name="exp_global" value="4"> Très bon</label>
+                          <label><input type="radio" name="exp_global" value="3"> Bon</label>
+                          <label><input type="radio" name="exp_global" value="2"> Mauvais</label>
+                          <label><input type="radio" name="exp_global" value="1"> Très mauvais</label>
+                      </div>
+          
+          
+                      <div class="question">
+          
+                          <p>Quels changements recommendez-vous pour ameliorer ce cours ?</p>
+                          <textarea name = "feedback" placeholder="Écrivez ici..."  required></textarea>
+                      </div>
+          
+          
+                      <button type="submit">Envoyer</button>
+                  </form>
+              </div>
+              <!--end formulaire-->
+            </div>
+            <!-- end page category -->
+          </div>
+        </div>
+    
+        <footer class="footer">
+          <div class="container-fluid">
+            <p class="pull-right">ISMS developers team</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+    
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
+
+    
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Chart JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+  </body>
+</html>

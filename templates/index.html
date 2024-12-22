@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>index</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
+    <script>
+		WebFont.load({
+			google: {"families":["Public Sans:300,400,500,600,700"]},
+			custom: {"families":["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ["{{ url_for('static', filename = 'assets/css/fonts.min.css') }}"]},
+			active: function() {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+
+  </head>
+  <body>
+    <div class="wrapper">
+
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item ">
+                <a href="#" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Acueill</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a  href="/profile/{{session['user_id'] }} " class="collapsed" >
+                  <i class="fas fa-user"></i>
+                  <p>profile</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a  href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')" >
+                  <i class="fas fa-sign-out-alt"></i>
+                  <p>logout</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('changer_mot_de_pass') }}" class="collapsed" >
+                  <i class="fas fa-key"></i>
+                  <p>changer mot de passe</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+    
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+              <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                  <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                  <i class="gg-menu-left"></i>
+                </button>
+              </div>
+              <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+              </button>
+            </div>
+            <!-- End Logo Header -->
+          </div>
+        </div>
+    
+        <div class="container">
+          <div class="page-inner">
+            <div class="page-header">
+              <h4 class="page-title">Acueil</h4>
+              <ul class="breadcrumbs">
+                <li class="nav-home">
+                  <a href="#">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">Questionnaire</a>
+                </li>
+              </ul>
+            </div>
+            <!-- page category -->
+            <div class="page-category">
+
+              <h2>les qeustionnaires</h2>
+
+              <table class="cours-table">
+                  <tr>
+                      <th>intitulé du cours</th>
+                      <th>remplire</th>
+                  </tr>
+                  
+                  {% for cour in cours %}
+                  <tr>
+                      <td>{{ cour[1] }}</td>
+                      <td>
+                      {% if cour[0] in evaluated_courses %}
+                      <button class="button_remplire disabled">Évalué</button>
+                      {% else %}
+                      <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
+                      {% endif %}
+                      </td>
+                  </tr>
+                  {% endfor %}
+          
+              </table>
+
+            </div>
+            <!-- end page category -->
+          </div>
+        </div>
+    
+        <footer class="footer">
+          <div class="container-fluid">
+            <p class="pull-right">ISMS developers team</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+    
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
+
+    
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+  </body>
+</html>

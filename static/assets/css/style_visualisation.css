@@ -1,0 +1,26 @@
+h1{
+    color:#345c3f;
+    background-color: #f4f4f4;
+    max-width: 400px;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    margin: auto;
+}
+
+h4{
+    text-align: center;
+}
+
+table{
+    color:black;
+    background-color: #f4f4f4;
+    margin: 40px auto;
+}
+
+tr, td, th, table{
+    border-collapse: collapse;
+    padding: 10px;
+}
+
+

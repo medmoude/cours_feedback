@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>index</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
+    <script>
+		WebFont.load({
+			google: {"families":["Public Sans:300,400,500,600,700"]},
+			custom: {"families":["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ["{{ url_for('static', filename = 'assets/css/fonts.min.css') }}"]},
+			active: function() {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+
+  </head>
+  <body>
+    <div class="wrapper">
+
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item ">
+                <a href="{{ url_for('index') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Acueill</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="#" class="collapsed" >
+                  <i class="fas fa-user"></i>
+                  <p>profile</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <p>logout</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('changer_mot_de_pass') }}" class="collapsed" >
+                  <i class="fas fa-key"></i>
+                  <p>changer mot de passe</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+    
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+              <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                  <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                  <i class="gg-menu-left"></i>
+                </button>
+              </div>
+              <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+              </button>
+            </div>
+            <!-- End Logo Header -->
+          </div>
+        </div>
+    
+        <div class="container">
+          <div class="page-inner">
+            <div class="page-header">
+              <h4 class="page-title">Profile</h4>
+              <ul class="breadcrumbs">
+                <li class="nav-home">
+                  <a href="#">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">Profile</a>
+                </li>
+              </ul>
+            </div>
+            <div class="page-category">
+                <!-- profile -->
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <h1 class="nom_prenom">{{user_data[1]}}</h1>
+                    </div>
+                
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <strong>Matricule:</strong>
+                            <span> {{user_data[0]}} </span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Nom & Prénom:</strong>
+                            <span> {{user_data[1]}} </span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong>
+                            <span> {{user_data[2]}} </span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Departement :</strong>
+                            <span> {{user_data[3]}} </span>
+                        </div>
+                    </div>
+                </div>
+                <!--end profile-->
+
+            </div>
+            <!--end page category-->
+          </div>
+        </div>
+    
+        <footer class="footer">
+          <div class="container-fluid">
+            <p class="pull-right">ISMS developers team</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+    
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
+
+    
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Chart JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+  </body>
+</html>

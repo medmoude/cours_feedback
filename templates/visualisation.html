@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>index</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
+    <script>
+		WebFont.load({
+			google: {"families":["Public Sans:300,400,500,600,700"]},
+			custom: {"families":["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ["{{ url_for('static', filename = 'assets/css/fonts.min.css') }}"]},
+			active: function() {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+
+  </head>
+  <body>
+    <div class="wrapper">
+
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item ">
+                <a href="{{ url_for('visualisation') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Acueill</p>
+                </a>
+              </li>
+              
+              <li class="nav-item ">
+                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <p>logout</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+    
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+              <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                  <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                  <i class="gg-menu-left"></i>
+                </button>
+              </div>
+              <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+              </button>
+            </div>
+            <!-- End Logo Header -->
+          </div>
+        </div>
+    
+        <div class="container">
+          <div class="page-inner" >
+            <div class="page-header">
+              <h4 class="page-title">Visualisation</h4>
+              <ul class="breadcrumbs">
+                <li class="nav-home">
+                  <a href="#">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">visualisation</a>
+                </li>
+              </ul>
+            </div>
+            <div class="page-category">
+                <!-- visualisation -->
+                <h1 >Données des évaluation</h1>
+                <table border="1">
+                    <tr>
+                        <th>Cours</th>
+                        <th>Moyenne des évaluation</th>
+                    </tr>
+                    {% for row in evaluation_data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <h4>la moyenne des évaluations des cours</h4>
+                <canvas id="evaluationChart" ></canvas>
+                <!--end visualisation-->
+            </div>
+            <!--end page category-->
+          </div>
+        </div>
+    
+        <footer class="footer">
+          <div class="container-fluid">
+            <p class="pull-right">ISMS developers team</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+    
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
+
+    <!--the script for chart.js functionnality-->
+    <script>
+        fetch("/chart-data")
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => item[0]);
+                // Convert scores to numbers (in case they're stored as strings)
+                const scores = data.map(item => Number(item[1])); // Ensure scores are numbers
+                console.log(labels)
+                console.log(scores)
+    
+                // Calculate the mean of the scores
+                const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+    
+                const ctx = document.getElementById('evaluationChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'moyenne des évaluations',
+                                data: scores,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(244, 244, 244, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'ligne de la moyenne',
+                                data: Array(scores.length).fill(mean),
+                                borderColor: 'rgba(255, 99, 132, 1)', // Change this to your desired color
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.1,
+                                type: 'line'
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'black'
+                                },
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.3)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: 'black'
+                                },
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.3)'
+                                },
+                                beginAtZero: true,
+                                suggestedMin: Math.min(...scores, mean) - 1,
+                                suggestedMax: Math.max(...scores, mean) + 1
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+    
+    
+
+    
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Chart JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+  </body>
+</html>
