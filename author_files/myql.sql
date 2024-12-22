@@ -313,7 +313,7 @@ SELECT * FROM niveau;
 SELECT * FROM departement;
 SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
-SELECT * FROM etudiants ;
+SELECT * FROM etudiants order by code_dep;
 SELECT * FROM evaluer;
 
 #showing students relevant courses 
@@ -336,13 +336,13 @@ WHERE etudiants.matricule = 23615
   
   
   
-  SELECT matricule, nom, prenom, email, intitulé_dep
+  SELECT matricule, nom_prenom, email, intitulé_dep
   FROM etudiants 
   JOIN departement ON etudiants.code_dep = departement.code_dep
   WHERE etudiants.matricule = 23618;
   ;
 
-SELECT AVG(evaluation) AS avg_evaluation, intitulé_cours 
+SELECT ROUND(AVG(evaluation), 2) AS avg_evaluation, intitulé_cours 
 FROM evaluer 
 JOIN cours ON evaluer.cours_code = cours.cours_code
 GROUP BY intitulé_cours;
