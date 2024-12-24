@@ -176,11 +176,16 @@
     </div>
 
     <script>
-      //a function to hide the flshed messages  
+      //a function to hide the flshed messages 
       setTimeout(function() {
           var messages = document.getElementById("flashed-messages");
+          var category = messages.getElementsByTagName("li")
           if (messages) {
               messages.style.display = "none";
+              //if password has been changed, go back to index
+              if (category[0].className === 'success'){
+                window.location.href = "{{ url_for('index') }}";
+              }
           }
       }, 3000); 
     </script>

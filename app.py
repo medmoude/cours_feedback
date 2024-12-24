@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, request, url_for, flash, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mysqldb import MySQL
 from datetime import datetime
+import time
 
 
 app = Flask(__name__)
@@ -179,6 +180,7 @@ def changer_mot_de_pass():
                     cur.execute(query,(nouveau_mot_de_pass, session['user_id']))
                     mysql.connection.commit()
                     flash('Le mot de passe a été changé avec succès', 'success')
+                    
                 else:
                     flash('Assurez-vous que les mots de passe correspondent', 'error')
                     return render_template('changer_mot_de_pass.html')
