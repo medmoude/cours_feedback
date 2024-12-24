@@ -188,6 +188,10 @@
               }
           }
       }, 3000); 
+
+      document.addEventListener('click', function() {
+        clearTimeout(); // Cancel any scheduled action
+    });
     </script>
     
     <!--   Core JS Files   -->
