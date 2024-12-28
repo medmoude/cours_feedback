@@ -28,7 +28,7 @@
             </div> 
             <input type="submit" name="" value="Se connecter">
         </form> 
-        <a href="#">Oublier le mot de passe ?<br> </a>
+        <a href="#"><br> </a>
 
         <script>
             
@@ -38,6 +38,10 @@
                     messages.style.display = "none";
                 }
             }, 3000); 
+
+            document.addEventListener('click', function() {
+            clearTimeout(); // Cancel any scheduled action
+            });
         </script>
     </div>
 </body>

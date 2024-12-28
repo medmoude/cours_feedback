@@ -135,7 +135,7 @@
                       {% if messages %}
                         <ul id="flashed-messages">
                           {% for category, message in messages %}
-                            <li class="{{category}}">{{message}} </li>
+                            <li class="{{category}}">{{message}}</li>
                           {% endfor %}
                         </ul>
                       {% endif %}
@@ -183,7 +183,7 @@
           if (messages) {
               messages.style.display = "none";
               //if password has been changed, go back to index
-              if (category[0].className === 'success'){
+              if (category[0].className === 'success' && category[0].textContent === 'Le mot de passe a été changé avec succès'){
                 window.location.href = "{{ url_for('index') }}";
               }
           }
