@@ -13,6 +13,8 @@ h1, h2 {
     color: #333;
 }
 
+
+
 h3 {
     margin-top: 20px;
     color: #555;
@@ -42,8 +44,9 @@ textarea {
 
 button {
     display: block;
-    width: 100%;
-    padding: 12px;
+    width: 100px;
+    padding: 5px;
+    margin: 10px 40px;
     background-color: #4CAF50;
     color: white;
     border: none;
@@ -53,6 +56,8 @@ button {
     transition: background-color 0.3s;
 }
 
+/*width: 100px;padding: 3px; margin: 10px 40px;*/
+
 button:hover {
     background-color: #45a049;
 }
@@ -61,22 +66,25 @@ input[type="radio"] {
     margin-right: 5px;
 }
 
+
 .question label {
     margin-right: 30px;
 }
 
-.section {
-    background-color: #f2f2f2;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+/* flashed messages */
+
+.success {
+    color: green;
+    text-align: center;
+    text-align: center;
+    list-style-type:none;
+    margin-left : -40px;
 }
 
-.section-1 {
-    background-color: #e8f5e9; 
+.error {
+    color: rgb(190, 71, 71);
+    text-align: center;
+    list-style-type:none;
+    margin-left : -40px;
 }
 
-.section-2 {
-    background-color: #f3e5f5; 
-}

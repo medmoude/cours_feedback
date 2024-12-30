@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>index</title>
+    <title>Modifier un questionnaire</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style-formulaire.css') }}  ">
 
   </head>
   <body>
@@ -55,27 +55,27 @@
           <div class="sidebar-content">
             <ul class="nav nav-secondary">
               <li class="nav-item ">
-                <a href="{{ url_for('index') }}" class="collapsed" >
+                <a href="{{ url_for('visualisation') }}" class="collapsed" >
                   <i class="fas fa-home"></i>
                   <p>Acueill</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="#" class="collapsed" >
-                  <i class="fas fa-user"></i>
-                  <p>profile</p>
+                <a href="{{ url_for('questionnaire') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Questionnaire</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Ajouter une promotion</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                   <i class="fas fa-sign-out-alt"></i>
                   <p>logout</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="{{ url_for('changer_mot_de_pass') }}" class="collapsed" >
-                  <i class="fas fa-key"></i>
-                  <p>changer mot de passe</p>
                 </a>
               </li>
             </ul>
@@ -111,7 +111,7 @@
         <div class="container">
           <div class="page-inner">
             <div class="page-header">
-              <h4 class="page-title">Profile</h4>
+              <h4 class="page-title">Ajouter une nouvelle promotion</h4>
               <ul class="breadcrumbs">
                 <li class="nav-home">
                   <a href="#">
@@ -122,59 +122,35 @@
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">Profile</a>
+                  <a href="#">Ajouter une nouvelle promotion</a>
                 </li>
               </ul>
             </div>
+            <!-- page category -->
             <div class="page-category">
-                <!-- profile -->
-                <div class="profile-container">
+              <!--ajouter une promotion -->
+              <div class="ajouter-promotion-container">
+                <h2>nouvelle promotion</h2>
 
-                    {% with messages = get_flashed_messages (with_categories = true) %}
-                      {% if messages %}
-                        <ul id="flashed-messages">
-                          {% for category, message in messages %}
-                            <li class="{{category}}"> {{message}} </li>
-                          {% endfor%}
-                        </ul>
-                      {% endif %}
-                    {% endwith %}
+                {% with messages = get_flashed_messages(with_categories = true) %}
+                  {% if messages %}
+                    <ul id="flashed-messages">
+                      {% for category, message in messages %}
+                        <li class="{{category}}"> {{message}} </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                {% endwith %}
 
-                    <div class="profile-header">
-                      {%if image%}
-                        <img src="{{ url_for('static', filename = 'uploads/'+image[1])}}" alt="your image" width="100px" height="100px"/ style="border-radius:  50%;"> <br>
-                      {%else%}
-                        <img src="" alt="no image">
-                      {%endif%}
-                        <form action="{{ url_for('ajouter_image') }}" method="post" enctype="multipart/form-data">
-                          <input type="file" name="image">
-                          <button type="submit">Ajouter</button>
-                        </form>
-                    </div>
-                
-                    <div class="profile-info">
-                        <div class="info-item">
-                            <strong>Matricule:</strong>
-                            <span> {{user_data[0]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Nom & Prénom:</strong>
-                            <span> {{user_data[1]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Email:</strong>
-                            <span> {{user_data[2]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Departement :</strong>
-                            <span> {{user_data[3]}} </span>
-                        </div>
-                    </div>
-                </div>
-                <!--end profile-->
-
+                <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data">
+                  <label for="promotion-file">ajouter une nouvelle promotion</label> <br>
+                  <input type="file" name="promotion-file" id="promotion-file">
+                  <button type="submit">Ajouter</button>
+                </form>
+              </div>
+              <!--end ajouter une promotion -->
             </div>
-            <!--end page category-->
+            <!-- end page category -->
           </div>
         </div>
     
@@ -185,12 +161,6 @@
         </footer>
       </div>
     </div>
-
-    <script>
-    document.addEventListener('click', function() {
-      clearTimeout(); // Cancel any scheduled action
-    });
-  </script>
     
     <!--   Core JS Files   -->
     <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>

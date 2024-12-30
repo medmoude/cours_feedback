@@ -28,12 +28,13 @@ lib_annee_univ VARCHAR(255) NOT NULL
 ) AUTO_INCREMENT = 2024 ; 
 
 CREATE TABLE etudiants (
-matricule INT NOT NULL PRIMARY KEY,
+matricule INT NOT NULL ,
 nom_prenom VARCHAR (100) NOT NULL,
-email VARCHAR (50) NOT NULL,
+email VARCHAR (100) NOT NULL,
 mot_de_pass VARCHAR(255) NOT NULL,
 code_dep INT NOT NULL,
 id_annee_univ INT NOT NULL,
+PRIMARY KEY(matricule, id_annee_univ),
 FOREIGN KEY (code_dep) REFERENCES departement(code_dep),
 FOREIGN KEY (id_annee_univ) REFERENCES annee_universitaire(id_annee_univ)
 );
@@ -107,7 +108,17 @@ INSERT INTO semestre (intitulé_sem, code_niv) VALUES
 ("S6", 3);
 
 INSERT INTO annee_universitaire (lib_annee_univ) VALUES
-("2024-2025");
+("2024-2025"),
+("2025-2026"),
+("2026-2027"),
+("2027-2028"),
+("2028-2029"),
+("2029-2030"),
+("2030-2031"),
+("2031-2032"),
+("2032-2033"),
+("2033-2034")
+;
 
 -- cours insrtions
 INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES 
@@ -356,6 +367,9 @@ SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
 SELECT * FROM etudiants order by code_dep;
 SELECT * FROM evaluer;
+SELECT * FROM images;
+SELECT * FROM images WHERE matricule = 23602 ORDER BY date_upload desc;
+
 
 #showing students relevant courses 
 SELECT cours_code, intitulé_cours
@@ -373,17 +387,18 @@ WHERE etudiants.matricule = 23615
     -- If student is from SDID, exclude courses starting with SEA
     OR
     (departement.intitulé_dep LIKE 'SDID%' AND cours.cours_code NOT LIKE 'SEA%')
-  );
+);
   
-  
-  
-  SELECT matricule, nom_prenom, email, intitulé_dep
-  FROM etudiants 
-  JOIN departement ON etudiants.code_dep = departement.code_dep
-  WHERE etudiants.matricule = 23618;
-  ;
+
+SELECT matricule, nom_prenom, email, intitulé_dep
+FROM etudiants 
+JOIN departement ON etudiants.code_dep = departement.code_dep
+WHERE etudiants.email = '23618@isms.esp.mr';
+
 
 SELECT ROUND(AVG(evaluation), 2) AS avg_evaluation, intitulé_cours 
 FROM evaluer 
 JOIN cours ON evaluer.cours_code = cours.cours_code
 GROUP BY intitulé_cours;
+
+DESC etudiants;

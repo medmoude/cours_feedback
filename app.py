@@ -1,19 +1,36 @@
 from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mysqldb import MySQL
 from datetime import datetime
-import time
-
+import pandas as pd
+import openpyxl
+import os 
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "medmoud"
 
+#mysql configuration
 app.config["MYSQL_HOST"] = "localhost"
 app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = "admin"
 app.config["MYSQL_DB"] = "feedback_cours"
+
+#file uploads configuration
+app.config['UPLOAD_FOLDER'] = 'static/uploads' 
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}  
+
+#initialize mysql
 mysql = MySQL(app)
 
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+#check for login (user and admin)
 def user_logged_in():
     return 'user_id' in session
 
@@ -207,8 +224,14 @@ def profile(user_id):
                         WHERE etudiants.matricule = %s ;
                     """, (user_id,))
             user_data = cur.fetchone()
+
+            cur.execute("SELECT * FROM images WHERE matricule = %s ORDER BY date_upload DESC ", (session['user_id'],))
+            image = cur.fetchone()
             cur.close()
-            return render_template("profile.html", user_data=user_data)
+            if image:
+                return render_template("profile.html", user_data=user_data, image = image)
+            else:
+                return render_template("profile.html", user_data=user_data)
     return "vous ne pouvez pas accéder ce profile"
 
 # Formulaire Cours route
@@ -287,6 +310,123 @@ def chart_data():
 
     # Convert data to JSON for chart rendering
     return jsonify(chart_data)
+
+
+@app.route('/questionnaire')
+def questionnaire():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM question")
+    questions = cur.fetchall()
+    return render_template('questionnaire.html', questions = questions)
+
+
+@app.route('/modifier_question<question_id>')
+def modifier_questionnaire(question_id):
+    cur = mysql.connection.cursor()
+    cur.execute("")
+    mysql.connection.commit()
+    cur.close()
+    return render_template('modifier_question.html')
+
+
+@app.route('/ajouter_question', methods = ['POST', 'GET'])
+def ajouter_question():
+    if request.method == "POST":
+        question = request.form['question']
+        reponseA = request.form['reponse-A']
+        reponseB = request.form['reponse-B']
+        reponseC = request.form['reponse-C']
+        reponseD = request.form['reponse-D']
+
+        cur = mysql.connection.cursor()
+        query = ""
+        cur.execute()
+        mysql.connection.commit()
+        cur.close()
+        return render_template('questionnaire.html')
+
+    return render_template('ajouter_question.html')
+
+
+
+@app.route('/ajouter_promotion', methods=['GET', 'POST']) 
+def ajouter_promotion():
+    if request.method == 'POST':
+
+        if 'promotion-file' not in request.files:
+            flash('Aucun fichier trouvé', 'error') 
+            return redirect(request.url)
+
+        file = request.files['promotion-file']
+    
+        if file.filename == '':
+            flash('Aucun fichier sélectionné', 'error')  
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.xlsx'):
+            promotion_data = pd.read_excel(file, sheet_name=None)  # sheet_name=None charge toutes les feuilles sous forme de dictionnaire
+
+            for sheet_name, df in promotion_data.items():
+                
+                for index, row in df.iterrows():
+                    matricule = row.get('matricule', None)
+                    nom_prenom = row.get('nom_prenom', None)
+                    email = row.get('email', None)
+                    mot_de_pass = row.get('mot_de_pass', None)
+                    code_dep = row.get('code_dep', None)
+                    id_annee_univ = row.get('id_annee_univ', None)
+
+                    # Insérer les données dans la base de données MySQL (vous pouvez aussi insérer dans différentes tables en fonction du nom de la feuille)
+                    cursor = mysql.connection.cursor()
+                    query = """
+                            INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ) 
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                            """
+                    cursor.execute(query, (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ))
+                    mysql.connection.commit()
+                    cursor.close()
+
+            flash('Fichier téléchargé avec succès et données insérées', 'success')
+            return redirect(url_for('visualisation'))  
+
+    # Rendre le template HTML pour l'upload
+    return render_template('ajouter_promotion.html')
+
+
+@app.route('/ajouter_image', methods=['GET', 'POST'])
+def ajouter_image():
+    if request.method == 'POST':
+        if 'image' not in request.files:
+            flash('Aucun image trouvé', 'error') 
+            return redirect(url_for('profile', user_id = session['user_id']))
+
+        file = request.files['image']
+        
+        if file.filename == '':
+            flash('Aucun image sélectionné', 'error')
+            return redirect(url_for('profile', user_id = session['user_id']))
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)  
+
+            # Optionally, store the file path in the database
+            cursor = mysql.connection.cursor()
+            query = "INSERT INTO images (nom_image, chemin_image, matricule) VALUES (%s, %s, %s)"
+            cursor.execute(query, (filename, file_path, session['user_id']))
+            mysql.connection.commit()
+            cursor.close()
+
+            flash('Image téléchargée avec succès', 'success')  
+            return redirect(url_for('profile', user_id = session['user_id'])) 
+
+        else:
+            flash("Type d'image non autorisé", 'error')
+            return redirect(url_for('profile', user_id = session['user_id']))
+
+    return render_template('profile.html')  
+
 
 if __name__ == "__main__":
     app.run(debug=True)
