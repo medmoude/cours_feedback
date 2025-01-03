@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify
+from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify, make_response
 from flask_mysqldb import MySQL
 from datetime import datetime
 import pandas as pd
@@ -38,97 +38,102 @@ def admin_logged_in():
     return 'admin_id' in session
 
 
+
 # the main route
 @app.route("/")
 def index():
-    if not user_logged_in():
-        return redirect(url_for('login'))
+    if user_logged_in():
 
-    #traitement des semestres impaires
-    cur = mysql.connection.cursor()
-    query_sem_impaire = """
-    SELECT cours_code, intitulé_cours
-    FROM etudiants
-    JOIN departement ON etudiants.code_dep = departement.code_dep
-    JOIN niveau ON departement.code_niv = niveau.code_niv
-    JOIN semestre ON niveau.code_niv = semestre.code_niv
-    JOIN cours ON semestre.code_sem = cours.code_sem
-    WHERE etudiants.matricule = %s
-    AND semestre.code_sem IN (1, 3, 5)
-    AND (
-        niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
-        -- If student is from SEA, exclude courses starting with SDID
-        OR
-        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
-        OR
-        -- If student is from SDID, exclude courses starting with SEA
-        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
-    );
-    """
+        #traitement des semestres impaires
+        cur = mysql.connection.cursor()
+        query_sem_impaire = """
+        SELECT cours_code, intitulé_cours
+        FROM etudiants
+        JOIN departement ON etudiants.code_dep = departement.code_dep
+        JOIN niveau ON departement.code_niv = niveau.code_niv
+        JOIN semestre ON niveau.code_niv = semestre.code_niv
+        JOIN cours ON semestre.code_sem = cours.code_sem
+        WHERE etudiants.matricule = %s
+        AND semestre.code_sem IN (1, 3, 5)
+        AND (
+            niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
+            -- If student is from SEA, exclude courses starting with SDID
+            OR
+            (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+            OR
+            -- If student is from SDID, exclude courses starting with SEA
+            (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+        );
+        """
 
-    if session['user_id']:  # Ensure the user_id is set
-        sea_pattern = "SEA%"
-        sdid_pattern = "SDID%"
+        if session['user_id']:  # Ensure the user_id is set
+            sea_pattern = "SEA%"
+            sdid_pattern = "SDID%"
+            
+            cur.execute(query_sem_impaire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+            cours_sem_impaire = cur.fetchall()
+        else:
+            cours_sem_impaire = []
+
+        #traitement des semestres paire
+        query_sem_paire = """
+        SELECT cours_code, intitulé_cours
+        FROM etudiants
+        JOIN departement ON etudiants.code_dep = departement.code_dep
+        JOIN niveau ON departement.code_niv = niveau.code_niv
+        JOIN semestre ON niveau.code_niv = semestre.code_niv
+        JOIN cours ON semestre.code_sem = cours.code_sem
+        WHERE etudiants.matricule = %s
+        AND semestre.code_sem IN (2, 4, 6)
+        AND (
+            niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
+            -- If student is from SEA, exclude courses starting with SDID
+            OR
+            (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+            OR
+            -- If student is from SDID, exclude courses starting with SEA
+            (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
+        );
+        """
+
+        if session['user_id']:  # Ensure the user_id is set
+            sea_pattern = "SEA%"
+            sdid_pattern = "SDID%"
+            
+            cur.execute(query_sem_paire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+            cours_sem_paire = cur.fetchall()
+        else:
+            cours_sem_paire = []
         
-        cur.execute(query_sem_impaire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
-        cours_sem_impaire = cur.fetchall()
-    else:
-        cours_sem_impaire = []
 
-    #traitement des semestres paire
-    query_sem_paire = """
-    SELECT cours_code, intitulé_cours
-    FROM etudiants
-    JOIN departement ON etudiants.code_dep = departement.code_dep
-    JOIN niveau ON departement.code_niv = niveau.code_niv
-    JOIN semestre ON niveau.code_niv = semestre.code_niv
-    JOIN cours ON semestre.code_sem = cours.code_sem
-    WHERE etudiants.matricule = %s
-    AND semestre.code_sem IN (2, 4, 6)
-    AND (
-        niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
-        -- If student is from SEA, exclude courses starting with SDID
-        OR
-        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
-        OR
-        -- If student is from SDID, exclude courses starting with SEA
-        (departement.intitulé_dep LIKE %s AND cours.cours_code NOT LIKE %s)
-    );
-    """
+        # Get list of courses the student has already evaluated
+        evaluated_courses = set()
+        cur.execute("""
+            SELECT cours_code FROM evaluer WHERE matricule = %s
+        """, (session['user_id'],))
+        for row in cur.fetchall():
+            evaluated_courses.add(row[0])
 
-    if session['user_id']:  # Ensure the user_id is set
-        sea_pattern = "SEA%"
-        sdid_pattern = "SDID%"
+        cur.close()
         
-        cur.execute(query_sem_paire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
-        cours_sem_paire = cur.fetchall()
-    else:
-        cours_sem_paire = []
-    
-
-    # Get list of courses the student has already evaluated
-    evaluated_courses = set()
-    cur.execute("""
-        SELECT cours_code FROM evaluer WHERE matricule = %s
-    """, (session['user_id'],))
-    for row in cur.fetchall():
-        evaluated_courses.add(row[0])
-
-    cur.close()
-    
-    mois = datetime.now().month
-    if mois in [10, 11, 12, 1, 2]:
-        return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
-    else:
-        return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
-
+        mois = datetime.now().month
+        if mois in [10, 11, 12, 1, 2]:
+            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
+        else:
+            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
+        
+    return redirect(url_for('login'))
 
 
 # Login route
 @app.route("/login", methods=["POST", "GET"])
 def login():
+
     if user_logged_in():
         return redirect(url_for('index'))
+    
+    if admin_logged_in():
+        return redirect(url_for('visualisation'))
 
     if request.method == "POST":
         email = request.form["email"]
@@ -140,7 +145,7 @@ def login():
         
         if email == "admin" and mot_de_pass == "admin":
             session['admin_id'] = 'admin'
-            return redirect('visualisation')
+            return redirect(url_for('visualisation'))
 
         # Verify if the email of the user exists
         cur = mysql.connection.cursor()
@@ -162,6 +167,7 @@ def login():
         else:
             flash("Email introuvable", "error")
             return render_template("login.html")
+        
     return render_template("login.html")
 
 
@@ -207,8 +213,8 @@ def changer_mot_de_pass():
                 return render_template('changer_mot_de_pass.html')
 
         return render_template ('changer_mot_de_pass.html')
-    else:
-        return "vous ne pouvez pas accédez cette page"
+    
+    return redirect(url_for('login'))
 
 
 # Profile route
@@ -232,52 +238,119 @@ def profile(user_id):
                 return render_template("profile.html", user_data=user_data, image = image)
             else:
                 return render_template("profile.html", user_data=user_data)
-    return "vous ne pouvez pas accéder ce profile"
+            
+    return redirect(url_for('login'))
+
+@app.route('/ajouter_image', methods=['GET', 'POST'])
+def ajouter_image():
+    if user_logged_in():
+        if request.method == 'POST':
+            if 'image' not in request.files:
+                flash('Aucun image trouvé', 'error') 
+                return redirect(url_for('profile', user_id = session['user_id']))
+
+            file = request.files['image']
+            
+            if file.filename == '':
+                flash('Aucun image sélectionné', 'error')
+                return redirect(url_for('profile', user_id = session['user_id']))
+
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)  
+
+                # Optionally, store the file path in the database
+                cursor = mysql.connection.cursor()
+                query = "INSERT INTO images (nom_image, chemin_image, matricule) VALUES (%s, %s, %s)"
+                cursor.execute(query, (filename, file_path, session['user_id']))
+                mysql.connection.commit()
+                cursor.close()
+
+                flash('Image téléchargée avec succès', 'success')  
+                return redirect(url_for('profile', user_id = session['user_id'])) 
+
+            else:
+                flash("Type d'image non autorisé", 'error')
+                return redirect(url_for('profile', user_id = session['user_id']))
+
+        return render_template('profile.html') 
+    
+    return redirect(url_for('login'))
+
 
 # Formulaire Cours route
 @app.route("/formulaire_cours/<cours_code>")
 def formulaire_cours(cours_code):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM cours WHERE cours_code = %s ", (cours_code,))
-    cours = cur.fetchone()
-    cur.close()
-
-    return render_template("formulaire.html", cours_code=cours_code, cours = cours)
-
-
-@app.route('/insert_formulaire/<cours_code>', methods = ["POST", "GET"])
-def insert_formulaire(cours_code):
-    if request.method == "POST":
-
-        matricule = session['user_id']
-        v_1 = int(request.form['preparation'])
-        print(type(v_1))
-        v_2 = int(request.form['aide_enseignant'])
-        v_4 = int(request.form['methodes_enseignement'])
-        v_5 = int(request.form['supports_ped'])
-        v_6 = int(request.form['methode_evaluation'])
-        v_7 = int(request.form['retours_clarite_utilite'])
-        v_8 = int(request.form['Cours_organisation'])
-        v_9 = int(request.form['Cours_benefices'])
-        v_10 = int(request.form['efficacite_cours'])
-        v_11= int(request.form['importance_utilite'])
-        v_12= int(request.form['environnement'])
-        v_13= int(request.form['statisfaction_des_objectifs'])
-        v_14= int(request.form['recommendation'])
-        v_15= int(request.form['exp_global'])
-        commentaire = request.form['feedback']
-        values = [v_1,v_2,v_4,v_5,v_6,v_7,v_8,v_9,v_10,v_11,v_12,v_13,v_14,v_15]
-        note_final = sum(values)/len(values)
+    if user_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM cours WHERE cours_code = %s ", (cours_code,))
+        cours = cur.fetchone()
+        cur.close()
 
         cur = mysql.connection.cursor()
-        cur.execute("""
-            INSERT INTO evaluer (matricule, cours_code, evaluation, commentaire) 
-            VALUES (%s, %s, %s, %s)
-        """, (matricule, cours_code, note_final, commentaire))
-        mysql.connection.commit()
-        return redirect(url_for('index'))
+        cur.execute("Select * from section")
+        sections = cur.fetchall()
+        cur.close
+
+        cur = mysql.connection.cursor()
+        cur.execute("Select * from question")
+        questions = cur.fetchall()
+        cur.close
+
+        ur = mysql.connection.cursor()
+        cur.execute("Select * from reponse")
+        reponses = cur.fetchall()
+        cur.close
+        
+        return render_template("formulaire.html",
+                                cours_code=cours_code,
+                                cours=cours,
+                                sections = sections,
+                                questions = questions,
+                                reponses = reponses)
+    
+    return redirect(url_for('login'))
 
 
+@app.route('/insert_formulaire/<cours_code>', methods=["POST", "GET"])
+def insert_formulaire(cours_code):
+    if user_logged_in():
+        if request.method == "POST":
+            matricule = session['user_id']
+            commentaire = request.form['feedback']
+            print("commentaire :",commentaire)
+
+            notes = []
+            print(request.form.items())
+            for key, value in request.form.items():
+                print(key,value)
+                if key.startswith("question_"):
+                    question_id = key.split("_")[1]
+                    notes.append(value)
+
+            print(notes)
+            somme = 0
+            for i in notes :
+                somme = somme + int(i)
+            note_final = somme/len(notes)
+            print(note_final)
+
+
+
+            cur = mysql.connection.cursor()
+            cur.execute("""
+                INSERT INTO evaluer (matricule, cours_code, evaluation, commentaire) 
+                VALUES (%s, %s, %s, %s)
+            """, (matricule, cours_code, note_final, commentaire))
+            mysql.connection.commit()
+            return redirect(url_for('index'))
+    
+    return redirect(url_for('login'))
+    
+
+
+# ADMIN routes 
 @app.route("/visualisation")
 def visualisation ():
     if admin_logged_in():
@@ -292,140 +365,228 @@ def visualisation ():
 
         return render_template('visualisation.html', evaluation_data = evaluation_data)
     
-    return "Vous ne pouvez pas accédez cette page"
+    return redirect(url_for('login'))
 
 
 @app.route('/chart-data')
 def chart_data():
-    cur = mysql.connection.cursor()
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
 
-    cur.execute("""
-        SELECT c.intitulé_cours, AVG(ev.evaluation) AS average_score
-        FROM evaluer ev
-        JOIN cours c ON ev.cours_code = c.cours_code
-        GROUP BY c.intitulé_cours
-    """)
-    chart_data = cur.fetchall()
-    cur.close()
+        cur.execute("""
+            SELECT c.intitulé_cours, AVG(ev.evaluation) AS average_score
+            FROM evaluer ev
+            JOIN cours c ON ev.cours_code = c.cours_code
+            GROUP BY c.intitulé_cours
+        """)
+        chart_data = cur.fetchall()
+        cur.close()
 
-    # Convert data to JSON for chart rendering
-    return jsonify(chart_data)
+        # Convert data to JSON for chart rendering
+        return jsonify(chart_data)
+    
+    return redirect(url_for('login'))
 
 
 @app.route('/questionnaire')
 def questionnaire():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM question")
-    questions = cur.fetchall()
-    return render_template('questionnaire.html', questions = questions)
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id_question, lib_question FROM question")
+        questions = cur.fetchall()
+        return render_template('questionnaire.html', questions=questions)
+    
+    return redirect(url_for('login'))
 
 
-@app.route('/modifier_question<question_id>')
-def modifier_questionnaire(question_id):
-    cur = mysql.connection.cursor()
-    cur.execute("")
-    mysql.connection.commit()
-    cur.close()
-    return render_template('modifier_question.html')
-
-
-@app.route('/ajouter_question', methods = ['POST', 'GET'])
+@app.route('/ajouter_question', methods=['GET', 'POST'])
 def ajouter_question():
-    if request.method == "POST":
-        question = request.form['question']
-        reponseA = request.form['reponse-A']
-        reponseB = request.form['reponse-B']
-        reponseC = request.form['reponse-C']
-        reponseD = request.form['reponse-D']
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+
+        if request.method == "POST":
+            # Fetch the main question and its section ID
+            question = request.form['question']
+            section_id = request.form['section']
+
+            # Fetch all responses and their ponderations dynamically
+            for key, value in request.form.items():
+                print(f"{key}: {value}")
+
+                # Collect dynamic responses and ponderations
+            responses = []
+            for key in request.form:
+                if key.startswith('reponse-'):
+                    response = request.form[key]
+                    ponderation_key = f'ponderation-{key.split("-")[1]}'
+                    ponderation = request.form.get(ponderation_key, 0)
+                    responses.append((response, ponderation))
+
+            print(responses)
+
+            cur.execute("INSERT INTO question (lib_question, id_section) VALUES (%s, %s)", (question, section_id))
+            mysql.connection.commit()
+            question_id = cur.lastrowid 
+
+            # Insert responses and ponderations into their respective table
+            for response, ponderation in responses:
+                cur.execute(
+                    "INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)",
+                    (response, ponderation, question_id)
+                )
+            mysql.connection.commit()
+            cur.close()
+
+            return redirect(url_for('questionnaire'))
+
+        # Fetch all sections for the dropdown
+        cur.execute("SELECT id_section, lib_section FROM section")
+        sections = cur.fetchall()
+        cur.close()
+
+        return render_template('ajouter_question.html', sections=sections)
+
+    return redirect(url_for('login'))
+
+@app.route('/modifier_question/<int:question_id>', methods=['GET', 'POST'])
+def modifier_questionnaire(question_id):
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        if request.method == "POST":
+            new_question = request.form['new_question']
+            cur.execute("UPDATE question SET lib_question = %s WHERE id_question = %s", (new_question, question_id))
+            mysql.connection.commit()
+
+            section = request.form['section']
+            cur.execute("update question set id_section = %s where id_question = %s",(section,question_id))
+            mysql.connection.commit()
+
+            cur.execute("SELECT lib_question , id_section FROM question WHERE id_question = %s", (question_id,))
+            question = cur.fetchone()
+            cur.close
+
+            cur = mysql.connection.cursor()
+            cur.execute("select  lib_reponse , poids_reponse from reponse WHERE id_question = %s", (question_id,))
+            reponse = cur.fetchall()
+            cur.close
+
+            cur.connection.cursor()
+            cur.execute("select * from section")
+            sections = cur.fetchall()
+            cur.close
+
+            # Fetch all responses and their ponderations dynamically
+            responses = []
+            for key in request.form:
+                if key.startswith('reponse-'):
+                    response = request.form[key]
+                    ponderation_key = f'ponderation-{key.split("-")[1]}'
+                    ponderation = request.form.get(ponderation_key, 0)
+                    responses.append((response, ponderation))
+
+            cur.connection.cursor()
+            cur.execute("select id_reponse from reponse where id_question = %s", (question_id,))
+            ids = cur.fetchall()
+            cur.close
+            c = 0
+
+            for i in responses :
+
+                if c < len(ids):
+                    lib_rep = i[0]
+                    poid_rep = i[1]
+                    cur.execute("update reponse set lib_reponse = %s , poids_reponse = %s where id_reponse = %s",
+                                (lib_rep, poid_rep, ids[c]))
+                    mysql.connection.commit()
+                    c = c + 1
+
+                else :
+                    lib_rep = i[0]
+                    poid_rep = i[1]
+                    cur.execute("INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)",
+                    (lib_rep, poid_rep, question_id))
+                    mysql.connection.commit()
+
+
+            return redirect(url_for('questionnaire'))
+
+
+        cur.execute("SELECT lib_question , id_section FROM question WHERE id_question = %s", (question_id,))
+        question = cur.fetchone()
+        cur.close
 
         cur = mysql.connection.cursor()
-        query = ""
-        cur.execute()
+        cur.execute("select  lib_reponse , poids_reponse from reponse WHERE id_question = %s",(question_id,))
+        reponse = cur.fetchall()
+        cur.close
+
+        cur.connection.cursor()
+        cur.execute("select * from section")
+        sections = cur.fetchall()
+        cur.close
+
+        return render_template('modifer_question.html', question=question,reponses = reponse, sections = sections)
+
+    return redirect(url_for('login'))
+
+@app.route('/supprimer_question/<int:question_id>')
+def supprimer_question(question_id):
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM reponse WHERE id_question = %s", (question_id,))
+        mysql.connection.commit()
+        cur.execute("DELETE FROM question WHERE id_question = %s", (question_id,))
         mysql.connection.commit()
         cur.close()
-        return render_template('questionnaire.html')
-
-    return render_template('ajouter_question.html')
-
+        return redirect(url_for('questionnaire'))
+    
+    return redirect(url_for('login'))
 
 
 @app.route('/ajouter_promotion', methods=['GET', 'POST']) 
 def ajouter_promotion():
-    if request.method == 'POST':
+    if admin_logged_in():
+        if request.method == 'POST':
 
-        if 'promotion-file' not in request.files:
-            flash('Aucun fichier trouvé', 'error') 
-            return redirect(request.url)
+            if 'promotion-file' not in request.files:
+                flash('Aucun fichier trouvé', 'error') 
+                return redirect(request.url)
 
-        file = request.files['promotion-file']
-    
-        if file.filename == '':
-            flash('Aucun fichier sélectionné', 'error')  
-            return redirect(request.url)
-
-        if file and file.filename.endswith('.xlsx'):
-            promotion_data = pd.read_excel(file, sheet_name=None)  # sheet_name=None charge toutes les feuilles sous forme de dictionnaire
-
-            for sheet_name, df in promotion_data.items():
-                
-                for index, row in df.iterrows():
-                    matricule = row.get('matricule', None)
-                    nom_prenom = row.get('nom_prenom', None)
-                    email = row.get('email', None)
-                    mot_de_pass = row.get('mot_de_pass', None)
-                    code_dep = row.get('code_dep', None)
-                    id_annee_univ = row.get('id_annee_univ', None)
-
-                    # Insérer les données dans la base de données MySQL (vous pouvez aussi insérer dans différentes tables en fonction du nom de la feuille)
-                    cursor = mysql.connection.cursor()
-                    query = """
-                            INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ) 
-                            VALUES (%s, %s, %s, %s, %s, %s)
-                            """
-                    cursor.execute(query, (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ))
-                    mysql.connection.commit()
-                    cursor.close()
-
-            flash('Fichier téléchargé avec succès et données insérées', 'success')
-            return redirect(url_for('visualisation'))  
-
-    # Rendre le template HTML pour l'upload
-    return render_template('ajouter_promotion.html')
-
-
-@app.route('/ajouter_image', methods=['GET', 'POST'])
-def ajouter_image():
-    if request.method == 'POST':
-        if 'image' not in request.files:
-            flash('Aucun image trouvé', 'error') 
-            return redirect(url_for('profile', user_id = session['user_id']))
-
-        file = request.files['image']
+            file = request.files['promotion-file']
         
-        if file.filename == '':
-            flash('Aucun image sélectionné', 'error')
-            return redirect(url_for('profile', user_id = session['user_id']))
+            if file.filename == '':
+                flash('Aucun fichier sélectionné', 'error')  
+                return redirect(request.url)
 
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)  
+            if file and file.filename.endswith('.xlsx'):
+                promotion_data = pd.read_excel(file, sheet_name=None)  # sheet_name=None charge toutes les feuilles sous forme de dictionnaire
 
-            # Optionally, store the file path in the database
-            cursor = mysql.connection.cursor()
-            query = "INSERT INTO images (nom_image, chemin_image, matricule) VALUES (%s, %s, %s)"
-            cursor.execute(query, (filename, file_path, session['user_id']))
-            mysql.connection.commit()
-            cursor.close()
+                for sheet_name, df in promotion_data.items():
+                    
+                    for index, row in df.iterrows():
+                        matricule = row.get('matricule', None)
+                        nom_prenom = row.get('nom_prenom', None)
+                        email = row.get('email', None)
+                        mot_de_pass = row.get('mot_de_pass', None)
+                        code_dep = row.get('code_dep', None)
+                        id_annee_univ = row.get('id_annee_univ', None)
 
-            flash('Image téléchargée avec succès', 'success')  
-            return redirect(url_for('profile', user_id = session['user_id'])) 
+                        # Insérer les données dans la base de données MySQL (vous pouvez aussi insérer dans différentes tables en fonction du nom de la feuille)
+                        cursor = mysql.connection.cursor()
+                        query = """
+                                INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ) 
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                                """
+                        cursor.execute(query, (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ))
+                        mysql.connection.commit()
+                        cursor.close()
 
-        else:
-            flash("Type d'image non autorisé", 'error')
-            return redirect(url_for('profile', user_id = session['user_id']))
-
-    return render_template('profile.html')  
+                flash('Fichier téléchargé avec succès et données insérées', 'success')
+                return redirect(url_for('visualisation'))  
+        return render_template('ajouter_promotion.html')
+    
+    return redirect(url_for('login'))
+ 
 
 
 if __name__ == "__main__":

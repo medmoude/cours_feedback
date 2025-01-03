@@ -368,9 +368,12 @@ SELECT * FROM cours ORDER BY code_sem;
 SELECT * FROM etudiants order by code_dep;
 SELECT * FROM evaluer;
 SELECT * FROM images;
+SELECT * FROM section;
 SELECT * FROM images WHERE matricule = 23602 ORDER BY date_upload desc;
 
-
+INSERT INTO section (lib_section, id_annee_univ) VALUES
+("prof",2024),
+("etudiant",2024);
 #showing students relevant courses 
 SELECT cours_code, intitulé_cours
 FROM etudiants

@@ -3,53 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter une question</title>
+    <title>modifier la question</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
+
 </head>
 <body>
     <div class="container mt-5">
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Ajouter une question</h4>
+                <h4 class="mb-0">Modifier la question</h4>
             </div>
             <div class="card-body">
                 <form method="POST">
                     <div class="form-group">
-                        <label for="question" class="form-label">Question:</label>
-                        <input type="text" id="question" name="question" class="form-control" placeholder="Enter the question" required>
+                        <label for="new_question" class="form-label">Question:</label>
+                        <input type="text" id="new_question" name="new_question" class="form-control"
+                            value="{{ question.0 }}" required>
                     </div>
                     <div class="form-group mt-3">
                         <label for="section" class="form-label">Section:</label>
                         <select id="section" name="section" class="form-control" required>
-                            <option value="" disabled selected>Choisir une section</option>
                             {% for section in sections %}
-                                <option value="{{ section.0 }}">{{ section.1 }}</option>
+                            <option value="{{ section.0 }}" {% if section.0 == question.1 %}selected{% endif %}>
+                                {{ section.1 }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="form-group mt-3">
                         <label for="responses" class="form-label">Réponses possibles et pondérations :</label>
                         <div id="responses-container">
+                            {% for response in reponses %}
                             <div class="input-group mb-2">
-                                <input type="text" name="reponse-A" class="form-control" placeholder="Response A" required>
-                                <input type="number" name="ponderation-A" class="form-control" placeholder="Poids A" min="0" max="100" style="width: 150px;" required>
+                                <input type="text" name="reponse-{{ loop.index }}" class="form-control"
+                                    value="{{ response.0 }}" required>
+                                <input type="number" name="ponderation-{{ loop.index }}" class="form-control"
+                                    value="{{ response.1 }}" min="0" max="100" style="width: 150px;" required>
                             </div>
-                            <div class="input-group mb-2">
-                                <input type="text" name="reponse-B" class="form-control" placeholder="Response B" required>
-                                <input type="number" name="ponderation-B" class="form-control" placeholder="poids de B" min="0" max="100" style="width: 150px;" required>
-                            </div>
+                            {% endfor %}
                         </div>
-                        <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">ajouter une Option</button>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">Ajouter une option</button>
                     </div>
                     <div class="mt-4">
-                        <input type="submit" value="Envoyer" class="btn btn-primary">
-                        <input type="reset" value="Effacer" class="btn btn-secondary">
+                        <input type="submit" value="Modifier la question" class="btn btn-warning">
+                        <a href="{{ url_for('questionnaire') }}" class="btn btn-secondary">Annuler</a>
                     </div>
                 </form>
-                <br>
-                <a href="{{ url_for('questionnaire') }}">
-                    <h4>Liste des questions</h4>
-                </a>
             </div>
         </div>
     </div>

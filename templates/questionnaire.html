@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Questionnaire</title>
+    <title>questionnaire</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Fonts and icons -->
     <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
@@ -22,141 +24,151 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style-formulaire.css') }}  ">
-
-  </head>
-  <body>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+</head>
+<body>
     <div class="wrapper">
-
-      <!-- Sidebar -->
-      <div class="sidebar" data-background-color="dark">
-        <div class="sidebar-logo">
-          <!-- Logo Header -->
-          <div class="logo-header" data-background-color="dark">
-            <a href="index.html" class="logo">
-              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
-              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
-            </a>
-            <div class="nav-toggle">
-              <button class="btn btn-toggle toggle-sidebar">
-                <i class="gg-menu-right"></i>
-              </button>
-              <button class="btn btn-toggle sidenav-toggler">
-                <i class="gg-menu-left"></i>
-              </button>
-            </div>
-            <button class="topbar-toggler more">
-              <i class="gg-more-vertical-alt"></i>
-            </button>
-          </div>
-          <!-- End Logo Header -->
-        </div>
-        <div class="sidebar-wrapper scrollbar scrollbar-inner">
-          <div class="sidebar-content">
-            <ul class="nav nav-secondary">
-              <li class="nav-item ">
-                <a href="{{ url_for('visualisation') }}" class="collapsed" >
-                  <i class="fas fa-home"></i>
-                  <p>Acueill</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="{{ url_for('questionnaire') }}" class="collapsed" >
-                  <i class="fas fa-home"></i>
-                  <p>Questionnaire</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
-                  <i class="fas fa-home"></i>
-                  <p>Ajouter une promotion</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
-                  <i class="fas fa-sign-out-alt"></i>
-                  <p>logout</p>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <!-- End Sidebar -->
-    
-      <div class="main-panel">
-        <div class="main-header">
-          <div class="main-header-logo">
+        <!-- Sidebar -->
+        <div class="sidebar" data-background-color="dark">
+            <div class="sidebar-logo">
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="dark">
-              <a href="index.html" class="logo">
-                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
-              </a>
-              <div class="nav-toggle">
+                <a href="index.html" class="logo">
+                <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+                <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+                </a>
+                <div class="nav-toggle">
                 <button class="btn btn-toggle toggle-sidebar">
-                  <i class="gg-menu-right"></i>
+                    <i class="gg-menu-right"></i>
                 </button>
                 <button class="btn btn-toggle sidenav-toggler">
-                  <i class="gg-menu-left"></i>
+                    <i class="gg-menu-left"></i>
                 </button>
-              </div>
-              <button class="topbar-toggler more">
+                </div>
+                <button class="topbar-toggler more">
                 <i class="gg-more-vertical-alt"></i>
-              </button>
+                </button>
             </div>
             <!-- End Logo Header -->
-          </div>
-        </div>
-    
-        <div class="container">
-          <div class="page-inner">
-            <div class="page-header">
-              <h4 class="page-title">Questionnaires</h4>
-              <ul class="breadcrumbs">
-                <li class="nav-home">
-                  <a href="#">
-                    <i class="icon-home"></i>
-                  </a>
-                </li>
-                <li class="separator">
-                  <i class="icon-arrow-right"></i>
-                </li>
-                <li class="nav-item">
-                  <a href="#">Questionnaire</a>
-                </li>
-              </ul>
             </div>
-            <!-- page category -->
-            <div class="page-category">
-              <!--questionnaires-->
-              this is the questionnaire page
-              <!--end questionnaires-->
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+            <div class="sidebar-content">
+                <ul class="nav nav-secondary">
+                <li class="nav-item ">
+                    <a href="{{ url_for('visualisation') }}" class="collapsed" >
+                    <i class="fas fa-home"></i>
+                    <p>Acueill</p>
+                    </a>
+                </li>
+                <li class="nav-item ">
+                    <a href="{{ url_for('questionnaire') }}" class="collapsed" >
+                    <i class="fas fa-home"></i>
+                    <p>Questionnaire</p>
+                    </a>
+                </li>
+                <li class="nav-item ">
+                    <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
+                    <i class="fas fa-home"></i>
+                    <p>Ajouter une promotion</p>
+                    </a>
+                </li>
+                <li class="nav-item ">
+                    <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <p>logout</p>
+                    </a>
+                </li>
+                </ul>
             </div>
-            <!-- end page category -->
-          </div>
+            </div>
         </div>
-    
-        <footer class="footer">
-          <div class="container-fluid">
-            <p class="pull-right">ISMS developers team</p>
-          </div>
-        </footer>
-      </div>
+        <!-- End Sidebar -->
+        
+        <div class="main-panel">
+            <div class="main-header">
+            <div class="main-header-logo">
+                <!-- Logo Header -->
+                <div class="logo-header" data-background-color="dark">
+                <a href="index.html" class="logo">
+                    <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+                </a>
+                <div class="nav-toggle">
+                    <button class="btn btn-toggle toggle-sidebar">
+                    <i class="gg-menu-right"></i>
+                    </button>
+                    <button class="btn btn-toggle sidenav-toggler">
+                    <i class="gg-menu-left"></i>
+                    </button>
+                </div>
+                <button class="topbar-toggler more">
+                    <i class="gg-more-vertical-alt"></i>
+                </button>
+                </div>
+                <!-- End Logo Header -->
+            </div>
+            </div>
+        
+            <div class="container">
+            <div class="page-inner" >
+                <div class="page-header">
+                <h4 class="page-title">Gérer les questions</h4>
+                <ul class="breadcrumbs">
+                    <li class="nav-home">
+                    <a href="#">
+                        <i class="icon-home"></i>
+                    </a>
+                    </li>
+                    <li class="separator">
+                    <i class="icon-arrow-right"></i>
+                    </li>
+                    <li class="nav-item">
+                    <a href="#">questions</a>
+                    </li>
+                </ul>
+                </div>
+
+                <div class="page-category">
+                    <!--questionnaire-->
+                    <a href="{{ url_for('ajouter_question') }}" class="btn btn-primary">Ajouter une Question</a>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th>Question</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for question in questions %}
+                                <tr>
+                                    <td>{{ question.1 }}</td>
+                                    <td>
+                                        <a href="{{ url_for('modifier_questionnaire', question_id=question.0) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                        <a href="{{ url_for('supprimer_question', question_id=question.0) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this question?')">Supprimer</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!--end questionnaire-->
+                </div>
+                <!--end page category-->
+            </div>
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <p class="text-center">ISMS developers team</p>
+                </div>
+            </footer>
+        </div>
     </div>
-    
-    <!--   Core JS Files   -->
-    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
-    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
 
-    
-    <!-- jQuery Scrollbar -->
-    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
-
-    <!-- Chart JS -->
-    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
-
-    <!-- Kaiadmin JS -->
-    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
-  </body>
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/core/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/kaiadmin.min.js') }}"></script>
+</body>
 </html>
