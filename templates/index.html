@@ -128,6 +128,7 @@
             </div>
             <!-- page category -->
             <div class="page-category">
+              <p>Bienvenue, {{session['user_nom_prenom']}} </p>
 
               <h2>les qeustionnaires</h2>
 
@@ -142,9 +143,9 @@
                       <td>{{ cour[1] }}</td>
                       <td>
                       {% if cour[0] in evaluated_courses %}
-                      <button class="button_remplire disabled">Évalué</button>
+                        <button class="button_remplire disabled">Évalué</button>
                       {% else %}
-                      <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
+                        <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
                       {% endif %}
                       </td>
                   </tr>

@@ -76,6 +76,70 @@ input[type="radio"] {
     margin-right: 30px;
 }
 
+
+/*ajouter une promotion */
+
+.ajouter-promotion-container{
+    text-align: center;
+    max-width: 80%;
+    font-family: Arial, sans-serif;
+    margin: auto;
+    padding: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.ajouter-promotion-container form{
+    text-align: center;
+}
+
+.ajouter-promotion-container button{
+    display: inline
+}
+
+.etudiants-table {
+    max-width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+    background-color: #878787;
+    color: white;
+    text-align: left;
+    padding: 7px;
+    margin-left: 70px;
+    max-width: 150px;
+}
+
+.etudiants-table th {
+    padding: 12px;
+}
+
+.etudiants-table tbody tr {
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.etudiants-table td {
+    padding: 12px;
+    text-align: left;
+}
+
+
+.etudiants-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+.etudiants-table tr:nth-child(odd) {
+    background-color: #f3f3f3;
+}
+
+
+
 /* flashed messages */
 
 .success {

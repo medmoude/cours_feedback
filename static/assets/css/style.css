@@ -4,6 +4,7 @@
     border-collapse: collapse;
     font-family: Arial, sans-serif;
     margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .cours-table thead {
@@ -36,10 +37,6 @@
     background-color: #f3f3f3;
 }
 
-
-.cours-table {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
 
 .cours-table {
     border: 1px solid #ddd;
@@ -87,24 +84,49 @@ border-radius: 10px;
     color: #333;
 }
 
-.profile-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.nom_prenom {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-}
-
-.profile-info {
+.profile-sub-container {
     width: 100%;
     max-width: 500px;
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    margin-bottom: 30px;
+}
+
+#image{
+    border-radius: 50%; 
+    border: 1px solid #919090; 
+    cursor: pointer; 
+    display: block;
+    margin: auto;
+    box-shadow: 0 6px 6px #c2c2c2;
+    
+}
+
+#image-file{
+    display: none;
+}
+
+.img-button{
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: block;
+    margin: auto;
+}
+
+.nom_prenom {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
 }
 
 .info-item {
@@ -120,6 +142,7 @@ border-radius: 10px;
 .info-item span {
     color: #555;
 }
+
 
 
 /* changer-mot-de-pass */

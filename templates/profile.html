@@ -140,36 +140,45 @@
                       {% endif %}
                     {% endwith %}
 
-                    <div class="profile-header">
-                      {%if image%}
-                        <img src="{{ url_for('static', filename = 'uploads/'+image[1])}}" alt="your image" width="100px" height="100px"/ style="border-radius:  50%;"> <br>
-                      {%else%}
-                        <img src="" alt="no image">
-                      {%endif%}
-                        <form action="{{ url_for('ajouter_image') }}" method="post" enctype="multipart/form-data">
-                          <input type="file" name="image">
-                          <button type="submit">Ajouter</button>
-                        </form>
+                    <div class="profile-sub-container">
+                      <div class="profile-header">
+                        {%if image%}
+                          <img src="{{ url_for('static', filename =image[2].split('static/')[1]) }}" alt="your image" id="image" width="100px" height="100px" > <br>
+                        
+                          <form action="{{ url_for('ajouter_image') }}" method="post" enctype="multipart/form-data">
+                            <input type="file" name="image-file" id="image-file">
+                            <button class="img-button" type="submit">Modifier image</button>
+                          </form>
+                        {%else%}
+                          <img src="{{url_for('static', filename='assets/img/no_profile.png')}}"  alt="no image" id="image" width="100px" height="100px" >
+  
+                          <form action="{{ url_for('ajouter_image') }}" method="post" enctype="multipart/form-data">
+                            <input type="file" name="image-file" id="image-file">
+                            <button class="img-button" type="submit">Mettre image</button>
+                          </form>
+                        {%endif%}
+                      </div>
+                  
+                      <div class="profile-info">
+                          <div class="info-item">
+                              <strong>Matricule:</strong>
+                              <span> {{user_data[0]}} </span>
+                          </div>
+                          <div class="info-item">
+                              <strong>Nom & Prénom:</strong>
+                              <span> {{user_data[1]}} </span>
+                          </div>
+                          <div class="info-item">
+                              <strong>Email:</strong>
+                              <span> {{user_data[2]}} </span>
+                          </div>
+                          <div class="info-item">
+                              <strong>Departement :</strong>
+                              <span> {{user_data[3]}} </span>
+                          </div>
+                      </div>
                     </div>
-                
-                    <div class="profile-info">
-                        <div class="info-item">
-                            <strong>Matricule:</strong>
-                            <span> {{user_data[0]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Nom & Prénom:</strong>
-                            <span> {{user_data[1]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Email:</strong>
-                            <span> {{user_data[2]}} </span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Departement :</strong>
-                            <span> {{user_data[3]}} </span>
-                        </div>
-                    </div>
+                    
                 </div>
                 <!--end profile-->
 
@@ -187,10 +196,18 @@
     </div>
 
     <script>
-    document.addEventListener('click', function() {
-      clearTimeout(); // Cancel any scheduled action
-    });
-  </script>
+      let imageFile = document.getElementById('image-file');
+      let image = document.getElementById('image');
+      let imgButton = document.getElementsByClassName('img-button');
+
+      image.onclick = function(){
+        imageFile.click();
+      }
+       
+      document.addEventListener('click', function() {
+        clearTimeout(); // Cancel any scheduled action
+      });
+    </script>
     
     <!--   Core JS Files   -->
     <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>

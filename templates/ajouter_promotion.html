@@ -62,13 +62,13 @@
               </li>
               <li class="nav-item ">
                 <a href="{{ url_for('questionnaire') }}" class="collapsed" >
-                  <i class="fas fa-home"></i>
+                  <i class="fas fa-question"></i>
                   <p>Questionnaire</p>
                 </a>
               </li>
               <li class="nav-item ">
                 <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
-                  <i class="fas fa-home"></i>
+                  <i class="fas fa-plus-circle"></i>
                   <p>Ajouter une promotion</p>
                 </a>
               </li>
@@ -132,7 +132,7 @@
               <div class="ajouter-promotion-container">
                 <h2>nouvelle promotion</h2>
 
-                {% with messages = get_flashed_messages(with_categories = true) %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
                   {% if messages %}
                     <ul id="flashed-messages">
                       {% for category, message in messages %}
@@ -142,15 +142,166 @@
                   {% endif %}
                 {% endwith %}
 
-                <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data">
-                  <label for="promotion-file">ajouter une nouvelle promotion</label> <br>
+                <!-- Form for uploading the file -->
+                <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data" id="file-form">
                   <input type="file" name="promotion-file" id="promotion-file">
-                  <button type="submit">Ajouter</button>
+                  <input type="hidden" name="type-form" value="file-upload">
+                  <button type="submit">Ajouter</button> <br> <br>
                 </form>
+
+                <!-- Form for selecting the academic year (annee_univ) -->
+                <form action="{{url_for('ajouter_promotion')}}" method="post" id="annee-form">
+                  <input type="hidden" name="type-form" value="select">
+                  <select name="annee_univ" id="annee_univ" onchange="submitForm()">
+                      {% for annee in annees %}
+                          {% if session['annee_univ'] %}
+
+                            {% if session['annee_univ'] == annee[1] %}
+                              <option value="{{annee[1]}}" selected> {{annee[1]}} </option>
+                            {% else%}
+                              <option value="{{annee[1]}}" > {{annee[1]}} </option>
+                            {% endif %}
+
+                          {% else %}
+                            <option value="{{annee[1]}}" > {{annee[1]}} </option>
+                          {% endif %}
+
+                      {% endfor %}
+                  </select>
+                </form>
+
+                <!-- End ajouter une promotion -->
               </div>
-              <!--end ajouter une promotion -->
+
+              <!--étudiants du promotion-->
+              <div class="etudiants-container">
+                {% if etudiants %}
+                  <!-- L1 -->
+                  <h3>L1</h3>
+                  <table class="etudiants-table">
+                    <tr>
+                      <th>matricule</th>
+                      <th>Nom_prénom</th>
+                      <th>email</th>
+                      <th>departement</th>
+                      <th>année univ</th>
+                    </tr>
+                    {% for etudiant in etudiants %}
+                      {% if etudiant[4] == 'Tronc commun' %}
+                        <tr>
+                          <td> {{etudiant[0]}} </td>
+                          <td> {{etudiant[1]}} </td>
+                          <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[4]}} </td>
+                          <td> {{etudiant[5]}} </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </table>
+
+                  <!-- SDID L2 -->
+                  <h3>SDID L2</h3>
+                  <table class="etudiants-table">
+                    <tr>
+                      <th>matricule</th>
+                      <th>Nom_prénom</th>
+                      <th>email</th>
+                      <th>departement</th>
+                      <th>année univ</th>
+                    </tr>
+                    {% for etudiant in etudiants %}
+                      {% if etudiant[4] == 'SDID L2' %}
+                        <tr>
+                          <td> {{etudiant[0]}} </td>
+                          <td> {{etudiant[1]}} </td>
+                          <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[4]}} </td>
+                          <td> {{etudiant[5]}} </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </table>
+
+                  <!-- SEA L2 -->
+                  <h3>SEA L2</h3>
+                  <table class="etudiants-table">
+                    <tr>
+                      <th>matricule</th>
+                      <th>Nom_prénom</th>
+                      <th>email</th>
+                      <th>departement</th>
+                      <th>année univ</th>
+                    </tr>
+                    {% for etudiant in etudiants %}
+                      {% if etudiant[4] == 'SEA L2' %}
+                        <tr>
+                          <td> {{etudiant[0]}} </td>
+                          <td> {{etudiant[1]}} </td>
+                          <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[4]}} </td>
+                          <td> {{etudiant[5]}} </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </table>
+
+                  <!-- SDID L3 -->
+                  <h3>SDID L3</h3>
+                  <table class="etudiants-table">
+                    <tr>
+                      <th>matricule</th>
+                      <th>Nom_prénom</th>
+                      <th>email</th>
+                      <th>departement</th>
+                      <th>année univ</th>
+                    </tr>
+                    {% for etudiant in etudiants %}
+                      {% if etudiant[4] == 'SDID L3' %}
+                        <tr>
+                          <td> {{etudiant[0]}} </td>
+                          <td> {{etudiant[1]}} </td>
+                          <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[4]}} </td>
+                          <td> {{etudiant[5]}} </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </table>
+
+                  <!-- SEA L3 -->
+                  <h3>SEA L3</h3>
+                  <table class="etudiants-table">
+                    <tr>
+                      <th>matricule</th>
+                      <th>Nom_prénom</th>
+                      <th>email</th>
+                      <th>departement</th>
+                      <th>année univ</th>
+                    </tr>
+                    {% for etudiant in etudiants %}
+                      {% if etudiant[4] == 'SEA L3' %}
+                        <tr>
+                          <td> {{etudiant[0]}} </td>
+                          <td> {{etudiant[1]}} </td>
+                          <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[4]}} </td>
+                          <td> {{etudiant[5]}} </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </table>
+
+                {% else %} 
+                  <p style="text-align: center; margin-top: 30px;">
+                     Aucun étudiant n'est encore inscrit dans cette année
+                  </p>
+                {% endif %}
+              </div>
+              <!-- end étudiant du promotion -->
+
             </div>
             <!-- end page category -->
+
           </div>
         </div>
     
@@ -161,6 +312,21 @@
         </footer>
       </div>
     </div>
+
+    <script>
+      function submitForm() {
+          var form = document.getElementById('annee-form');
+          var selectedValue = document.getElementById('annee_univ').value;
+          var previousValue = form.querySelector('select[name="annee_univ"]').value;
+          
+          if (selectedValue == previousValue) {
+              form.submit();
+          } else {
+              form.submit();
+              
+          }
+      }
+    </script>
     
     <!--   Core JS Files   -->
     <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
