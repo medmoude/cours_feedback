@@ -90,8 +90,9 @@
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="dark">
               <a href="index.html" class="logo">
-                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
-              </a>
+                <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+                <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+                </a>
               <div class="nav-toggle">
                 <button class="btn btn-toggle toggle-sidebar">
                   <i class="gg-menu-right"></i>
@@ -217,9 +218,6 @@
     
     <!-- jQuery Scrollbar -->
     <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
-
-    <!-- Chart JS -->
-    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
 
     <!-- Kaiadmin JS -->
     <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>

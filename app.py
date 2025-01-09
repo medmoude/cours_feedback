@@ -4,6 +4,7 @@ from MySQLdb._exceptions import IntegrityError
 from datetime import datetime
 import pandas as pd
 import openpyxl
+import time
 import os 
 from werkzeug.utils import secure_filename
 
@@ -40,12 +41,22 @@ def admin_logged_in():
     return 'admin_id' in session
 
 
+@app.before_request
+def set_end_time():
+    if 'end_time' not in session:
+        
+        countdown_duration = 60 * 10
+        session['end_time'] = time.time() + countdown_duration 
+
+
 
 # the main route
 @app.route("/")
 def index():
     if user_logged_in():
 
+        end_time = session['end_time']
+        
         #traitement des semestres impaires
         cur = mysql.connection.cursor()
         query_sem_impaire = """
@@ -119,9 +130,9 @@ def index():
         
         mois = datetime.now().month
         if mois in [10, 11, 12, 1, 2]:
-            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
+            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses, end_time=end_time)
         else:
-            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
+            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses, end_time=end_time)
         
     return redirect(url_for('login'))
 
@@ -239,7 +250,10 @@ def profile(user_id):
                 return render_template("profile.html", user_data=user_data, image = image)
             else:
                 return render_template("profile.html", user_data=user_data)
-            
+
+        else:
+            return redirect(url_for('profile', user_id = session['user_id']))
+
     return redirect(url_for('login'))
 
 @app.route('/ajouter_image', methods=['GET', 'POST'])
@@ -631,7 +645,6 @@ def ajouter_promotion():
         return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
 
     return redirect(url_for('login'))
-    
 
 
 if __name__ == "__main__":

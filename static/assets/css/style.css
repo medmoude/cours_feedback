@@ -1,4 +1,15 @@
 /* Les cours */
+
+p:has(strong#timer){
+    background-color: rgb(64, 53, 119);
+    color: white;
+    padding: 5px;
+    width: 200px;
+    border-radius: 5px;
+    font-weight: bold
+}
+
+
 .cours-table {
     max-width: 100%;
     border-collapse: collapse;

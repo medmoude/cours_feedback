@@ -123,18 +123,20 @@
                 </li>
               </ul>
             </div>
-            <!-- page category -->
+            <!--page category-->
             <div class="page-category">
               <p>Bienvenue, {{session['user_nom_prenom']}} </p>
-
-              <h2>les qeustionnaires</h2>
-
+              <!-- Display countdown time dynamically -->
+              <p>
+                Temps restant: <strong id="timer"> {{hours}} : {{minutes}} : {{seconds}} </strong> 
+              </p>
+              
+              <h2>Les questionnaires</h2>
               <table class="cours-table">
                   <tr>
-                      <th>intitulé du cours</th>
-                      <th>remplire</th>
+                      <th>Intitulé du cours</th>
+                      <th>Remplir</th>
                   </tr>
-                  
                   {% for cour in cours %}
                   <tr>
                       <td>{{ cour[1] }}</td>
@@ -147,7 +149,6 @@
                       </td>
                   </tr>
                   {% endfor %}
-          
               </table>
 
             </div>
@@ -174,5 +175,38 @@
 
     <!-- Kaiadmin JS -->
     <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+
+    <script>
+        // The end time passed from the server (in seconds)
+        let endTime = {{ end_time|tojson }};
+
+        
+        function updateCountdown() {
+            let currentTime = Date.now() / 1000;  
+            let remainingTime = endTime - currentTime;
+
+            if (remainingTime <= 0) {
+                document.getElementById("timer").textContent = "Time's up!";
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            // Convert remaining time to hours, minutes, and seconds
+            let hours = Math.floor(remainingTime / 3600);
+            let minutes = Math.floor((remainingTime % 3600) / 60);
+            let seconds = Math.floor(remainingTime % 60);
+
+            let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById("timer").textContent = formattedTime;
+        }
+
+        
+        let countdownInterval = setInterval(updateCountdown, 1000);
+
+        
+        updateCountdown();
+    </script>
+    
   </body>
 </html>
