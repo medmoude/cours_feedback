@@ -73,6 +73,12 @@
                     </a>
                 </li>
                 <li class="nav-item ">
+                    <a href="{{ url_for('envoyer_formulaire') }}" class="collapsed" >
+                      <i class="fas fa-paper-plane"></i>
+                      <p>Envoyer formulaire</p>
+                    </a>
+                </li>
+                <li class="nav-item ">
                     <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                     <i class="fas fa-sign-out-alt"></i>
                     <p>logout</p>
@@ -130,6 +136,7 @@
                 <div class="page-category">
                     <!--questionnaire-->
                     <a href="{{ url_for('ajouter_question') }}" class="btn btn-primary">Ajouter une Question</a>
+                    <a href="{{ url_for('ajouter_section') }}" class="btn btn-primary">Ajouter une Section</a>
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover">
                             <thead class="thead-dark">
@@ -143,7 +150,7 @@
                                 <tr>
                                     <td>{{ question.1 }}</td>
                                     <td>
-                                        <a href="{{ url_for('modifier_questionnaire', question_id=question.0) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                        <a href="{{ url_for('modifier_question', question_id=question.0) }}" class="btn btn-warning btn-sm">Modifier</a>
                                         <a href="{{ url_for('supprimer_question', question_id=question.0) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this question?')">Supprimer</a>
                                     </td>
                                 </tr>

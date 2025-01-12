@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Modifier un questionnaire</title>
+    <title>Ajouter une promotion</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
 
@@ -70,6 +70,12 @@
                 <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
                   <i class="fas fa-plus-circle"></i>
                   <p>Ajouter une promotion</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('envoyer_formulaire') }}" class="collapsed" >
+                  <i class="fas fa-paper-plane"></i>
+                  <p>Envoyer formulaire</p>
                 </a>
               </li>
               <li class="nav-item ">
@@ -161,9 +167,6 @@
                             {% else%}
                               <option value="{{annee[1]}}" > {{annee[1]}} </option>
                             {% endif %}
-
-                          {% else %}
-                            <option value="{{annee[1]}}" > {{annee[1]}} </option>
                           {% endif %}
 
                       {% endfor %}
@@ -187,13 +190,13 @@
                       <th>année univ</th>
                     </tr>
                     {% for etudiant in etudiants %}
-                      {% if etudiant[4] == 'Tronc commun' %}
+                      {% if etudiant[3] == 'Tronc commun' %}
                         <tr>
                           <td> {{etudiant[0]}} </td>
                           <td> {{etudiant[1]}} </td>
                           <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[3]}} </td>
                           <td> {{etudiant[4]}} </td>
-                          <td> {{etudiant[5]}} </td>
                         </tr>
                       {% endif %}
                     {% endfor %}
@@ -210,13 +213,13 @@
                       <th>année univ</th>
                     </tr>
                     {% for etudiant in etudiants %}
-                      {% if etudiant[4] == 'SDID L2' %}
+                      {% if etudiant[3] == 'SDID L2' %}
                         <tr>
                           <td> {{etudiant[0]}} </td>
                           <td> {{etudiant[1]}} </td>
                           <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[3]}} </td>
                           <td> {{etudiant[4]}} </td>
-                          <td> {{etudiant[5]}} </td>
                         </tr>
                       {% endif %}
                     {% endfor %}
@@ -233,13 +236,13 @@
                       <th>année univ</th>
                     </tr>
                     {% for etudiant in etudiants %}
-                      {% if etudiant[4] == 'SEA L2' %}
+                      {% if etudiant[3] == 'SEA L2' %}
                         <tr>
                           <td> {{etudiant[0]}} </td>
                           <td> {{etudiant[1]}} </td>
                           <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[3]}} </td>
                           <td> {{etudiant[4]}} </td>
-                          <td> {{etudiant[5]}} </td>
                         </tr>
                       {% endif %}
                     {% endfor %}
@@ -256,13 +259,13 @@
                       <th>année univ</th>
                     </tr>
                     {% for etudiant in etudiants %}
-                      {% if etudiant[4] == 'SDID L3' %}
+                      {% if etudiant[3] == 'SDID L3' %}
                         <tr>
                           <td> {{etudiant[0]}} </td>
                           <td> {{etudiant[1]}} </td>
                           <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[3]}} </td>
                           <td> {{etudiant[4]}} </td>
-                          <td> {{etudiant[5]}} </td>
                         </tr>
                       {% endif %}
                     {% endfor %}
@@ -279,13 +282,13 @@
                       <th>année univ</th>
                     </tr>
                     {% for etudiant in etudiants %}
-                      {% if etudiant[4] == 'SEA L3' %}
+                      {% if etudiant[3] == 'SEA L3' %}
                         <tr>
                           <td> {{etudiant[0]}} </td>
                           <td> {{etudiant[1]}} </td>
                           <td> {{etudiant[2]}} </td>
+                          <td> {{etudiant[3]}} </td>
                           <td> {{etudiant[4]}} </td>
-                          <td> {{etudiant[5]}} </td>
                         </tr>
                       {% endif %}
                     {% endfor %}

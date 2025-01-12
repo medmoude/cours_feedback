@@ -7,6 +7,9 @@ import openpyxl
 import time
 import os 
 from werkzeug.utils import secure_filename
+import string
+import secrets 
+
 
 app = Flask(__name__)
 app.secret_key = "medmoud"
@@ -41,6 +44,30 @@ def admin_logged_in():
     return 'admin_id' in session
 
 
+#obtenir annee universitaire 
+def obtenir_annee_universitaire_en_cours():
+    date_actuelle = datetime.now()
+
+    annee_actuelle = date_actuelle.year
+    mois_actuel = date_actuelle.month
+
+    if mois_actuel >= 10:  # De Septembre à Décembre
+        annee_universitaire = f"{annee_actuelle}-{annee_actuelle + 1}"
+
+    else:  # De Janvier à Août
+        annee_universitaire = f"{annee_actuelle - 1}-{annee_actuelle}"
+
+    return annee_universitaire
+
+#generate a random password
+def generate_password(length=8):
+    alphabet = string.ascii_letters + string.digits
+
+    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+
+    return password
+
+
 @app.before_request
 def set_end_time():
     if 'end_time' not in session:
@@ -62,7 +89,7 @@ def index():
         query_sem_impaire = """
         SELECT cours_code, intitulé_cours
         FROM etudiants
-        JOIN departement ON etudiants.code_dep = departement.code_dep
+        JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
         JOIN niveau ON departement.code_niv = niveau.code_niv
         JOIN semestre ON niveau.code_niv = semestre.code_niv
         JOIN cours ON semestre.code_sem = cours.code_sem
@@ -92,7 +119,7 @@ def index():
         query_sem_paire = """
         SELECT cours_code, intitulé_cours
         FROM etudiants
-        JOIN departement ON etudiants.code_dep = departement.code_dep
+        JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
         JOIN niveau ON departement.code_niv = niveau.code_niv
         JOIN semestre ON niveau.code_niv = semestre.code_niv
         JOIN cours ON semestre.code_sem = cours.code_sem
@@ -157,6 +184,7 @@ def login():
         
         if email == "admin" and mot_de_pass == "admin":
             session['admin_id'] = 'admin'
+            session['annee_univ'] = obtenir_annee_universitaire_en_cours()
             return redirect(url_for('visualisation'))
 
         # Verify if the email of the user exists
@@ -170,6 +198,7 @@ def login():
             if mot_de_pass == user[3]:
                 session["user_id"] = user[0]  # Store matricule (user_id) in session
                 session["user_nom_prenom"] = user[1]
+                session["annee_univ"] = obtenir_annee_universitaire_en_cours()
                 return redirect(url_for("index"))
             else:
                 flash('le mot de passe est incorrecte','error')
@@ -186,12 +215,15 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
+    session.pop("annee_univ", None)
     return redirect(url_for('login'))
+
 
 #Logout route (admin)
 @app.route("/logout_admin")
 def logout_admin():
     session.pop("admin_id", None)
+    session.pop("annee_univ", None)
     return redirect(url_for('login'))
 
 
@@ -236,9 +268,9 @@ def profile(user_id):
         if user_id == str(session['user_id']):
             cur = mysql.connection.cursor()
             cur.execute("""
-                        SELECT matricule, nom_prenom , email, intitulé_dep
+                        SELECT matricule, nom_prenom , email, etudiants.intitulé_dep
                         FROM etudiants 
-                        JOIN departement ON etudiants.code_dep = departement.code_dep
+                        JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
                         WHERE etudiants.matricule = %s ;
                     """, (user_id,))
             user_data = cur.fetchone()
@@ -329,30 +361,33 @@ def insert_formulaire(cours_code):
     if user_logged_in():
         if request.method == "POST":
             matricule = session['user_id']
-            commentaire = request.form['feedback']
-
+            
+            # Initialize a list to store the ratings or responses for each question
             notes = []
+            
+            # Loop through the submitted form data to get the responses for each question
             for key, value in request.form.items():
                 if key.startswith("question_"):
-                    question_id = key.split("_")[1]
-                    notes.append(value)
-
-            somme = 0
-            for i in notes :
-                somme = somme + int(i)
-            note_final = somme/len(notes)
-
+                    question_id = key.split("_")[1] 
+                    notes.append(value) 
+            
+            # Calculate the final evaluation score (average of all ratings)
+            somme = sum([int(i) for i in notes])
+            note_final = somme / len(notes) if len(notes) > 0 else 0
 
             cur = mysql.connection.cursor()
             cur.execute("""
-                INSERT INTO evaluer (matricule, cours_code, evaluation, commentaire) 
-                VALUES (%s, %s, %s, %s)
-            """, (matricule, cours_code, note_final, commentaire))
+                INSERT INTO evaluer (evaluation, matricule, cours_code) 
+                VALUES (%s, %s, %s)
+            """, (note_final, matricule, cours_code))
             mysql.connection.commit()
+            
             cur.close()
-            return redirect(url_for('index'))
-    
-    return redirect(url_for('login'))
+            return redirect(url_for('index')) 
+        else:
+            return redirect(url_for('login')) 
+    return redirect(url_for('login'))  
+
     
 
 
@@ -410,38 +445,41 @@ def questionnaire():
 def ajouter_question():
     if admin_logged_in():
         cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM section ")
+        sections = cur.fetchall()
 
         if request.method == "POST":
-            # Fetch the main question and its section ID
+            # Fetch the main question, its section ID, and type
             question = request.form['question']
+            type_question = request.form['type']
             section_id = request.form['section']
 
-            # Fetch all responses and their ponderations dynamically
-            for key, value in request.form.items():
-                print(f"{key}: {value}")
+            # Determine if responses are required based on question type
+            reponse_required = True if type_question != 'textarea' else False
 
-                # Collect dynamic responses and ponderations
-            responses = []
-            for key in request.form:
-                if key.startswith('reponse-'):
-                    response = request.form[key]
-                    ponderation_key = f'ponderation-{key.split("-")[1]}'
-                    ponderation = request.form.get(ponderation_key, 0)
-                    responses.append((response, ponderation))
-
-
-            cur.execute("INSERT INTO question (lib_question, id_section) VALUES (%s, %s)", (question, section_id))
+            # Insert the question into the database
+            cur.execute("INSERT INTO question (lib_question, id_section, type_question, reponse_required) VALUES (%s, %s, %s, %s)", 
+                        (question, section_id, type_question, reponse_required))
             mysql.connection.commit()
-            question_id = cur.lastrowid 
+            question_id = cur.lastrowid
 
-            # Insert responses and ponderations into their respective table
-            for response, ponderation in responses:
-                cur.execute(
-                    "INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)",
-                    (response, ponderation, question_id))
-            mysql.connection.commit()
+            # If responses are required (not a textarea), insert them
+            if reponse_required:
+                responses = []
+                for key, value in request.form.items():
+                    if key.startswith('reponse-'):
+                        response = request.form[key]
+                        ponderation_key = f'ponderation-{key.split("-")[1]}'
+                        ponderation = request.form.get(ponderation_key, 0)
+                        responses.append((response, ponderation))
+
+                # Insert responses into the database
+                for response, ponderation in responses:
+                    cur.execute("INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)", 
+                                (response, ponderation, question_id))
+                mysql.connection.commit()
+
             cur.close()
-
             return redirect(url_for('questionnaire'))
 
         # Fetch all sections for the dropdown
@@ -453,86 +491,79 @@ def ajouter_question():
 
     return redirect(url_for('login'))
 
+
+
 @app.route('/modifier_question/<int:question_id>', methods=['GET', 'POST'])
-def modifier_questionnaire(question_id):
+def modifier_question(question_id):
     if admin_logged_in():
         cur = mysql.connection.cursor()
+
         if request.method == "POST":
-            new_question = request.form['new_question']
-            cur.execute("UPDATE question SET lib_question = %s WHERE id_question = %s", (new_question, question_id))
-            mysql.connection.commit()
-
+            new_question = request.form['question']
             section = request.form['section']
-            cur.execute("update question set id_section = %s where id_question = %s",(section,question_id))
+            type_question = request.form['type']
+
+            # Determine if responses are required based on question type
+            response_required = True if type_question != 'textarea' else False
+
+            # Update the question text, section, and type
+            cur.execute("UPDATE question SET lib_question = %s, id_section = %s, type_question = %s, reponse_required = %s WHERE id_question = %s", 
+                        (new_question, section, type_question, response_required, question_id))
             mysql.connection.commit()
 
-            cur.execute("SELECT lib_question , id_section FROM question WHERE id_question = %s", (question_id,))
-            question = cur.fetchone()
-            cur.close
+            # If responses are required (not a textarea), update them
+            if response_required:
+                responses = []
+                for key in request.form:
+                    if key.startswith('reponse-'):
+                        response = request.form[key]
+                        ponderation_key = f'ponderation-{key.split("-")[1]}'
+                        ponderation = request.form.get(ponderation_key, 0)
+                        responses.append((response, ponderation))
 
-            cur = mysql.connection.cursor()
-            cur.execute("select  lib_reponse , poids_reponse from reponse WHERE id_question = %s", (question_id,))
-            reponse = cur.fetchall()
-            cur.close
+                # Fetch the current response IDs
+                cur.execute("SELECT id_reponse FROM reponse WHERE id_question = %s", (question_id,))
+                existing_response_ids = cur.fetchall()
 
-            cur.connection.cursor()
-            cur.execute("select * from section")
-            sections = cur.fetchall()
-            cur.close
-
-            # Fetch all responses and their ponderations dynamically
-            responses = []
-            for key in request.form:
-                if key.startswith('reponse-'):
-                    response = request.form[key]
-                    ponderation_key = f'ponderation-{key.split("-")[1]}'
-                    ponderation = request.form.get(ponderation_key, 0)
-                    responses.append((response, ponderation))
-
-            cur.connection.cursor()
-            cur.execute("select id_reponse from reponse where id_question = %s", (question_id,))
-            ids = cur.fetchall()
-            cur.close
-            c = 0
-
-            for i in responses :
-
-                if c < len(ids):
-                    lib_rep = i[0]
-                    poid_rep = i[1]
-                    cur.execute("update reponse set lib_reponse = %s , poids_reponse = %s where id_reponse = %s",
-                                (lib_rep, poid_rep, ids[c]))
+                c = 0
+                for response, ponderation in responses:
+                    if c < len(existing_response_ids):
+                        # Update existing responses
+                        response_id = existing_response_ids[c][0]
+                        cur.execute("UPDATE reponse SET lib_reponse = %s, poids_reponse = %s WHERE id_reponse = %s", 
+                                    (response, ponderation, response_id))
+                    else:
+                        # Insert new responses if there are more
+                        cur.execute("INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)", 
+                                    (response, ponderation, question_id))
                     mysql.connection.commit()
-                    c = c + 1
+                    c += 1
 
-                else :
-                    lib_rep = i[0]
-                    poid_rep = i[1]
-                    cur.execute("INSERT INTO reponse (lib_reponse, poids_reponse, id_question) VALUES (%s, %s, %s)",
-                    (lib_rep, poid_rep, question_id))
-                    mysql.connection.commit()
+            else:
+                # If it's a textarea, ensure no responses are included (optional, can be left empty)
+                pass
 
-
+            cur.close()
             return redirect(url_for('questionnaire'))
 
-
-        cur.execute("SELECT lib_question , id_section FROM question WHERE id_question = %s", (question_id,))
+        # Fetch the current question and responses for editing
+        cur.execute("SELECT * FROM question WHERE id_question = %s", (question_id,))
         question = cur.fetchone()
-        cur.close
 
-        cur = mysql.connection.cursor()
-        cur.execute("select  lib_reponse , poids_reponse from reponse WHERE id_question = %s",(question_id,))
-        reponse = cur.fetchall()
-        cur.close
+        cur.execute("SELECT lib_reponse, poids_reponse FROM reponse WHERE id_question = %s", (question_id,))
+        responses = cur.fetchall()
 
-        cur.connection.cursor()
-        cur.execute("select * from section")
+        # Fetch all sections for the dropdown
+        cur.execute("SELECT id_section, lib_section FROM section")
         sections = cur.fetchall()
-        cur.close
 
-        return render_template('modifier_question.html', question=question,reponses = reponse, sections = sections)
+        cur.close()
+
+        return render_template('modifier_question.html', question=question, responses=responses, sections=sections)
 
     return redirect(url_for('login'))
+
+
 
 @app.route('/supprimer_question/<int:question_id>')
 def supprimer_question(question_id):
@@ -546,6 +577,82 @@ def supprimer_question(question_id):
         return redirect(url_for('questionnaire'))
     
     return redirect(url_for('login'))
+
+
+@app.route('/ajouter_section', methods = ['GET', 'POST'])
+def ajouter_section():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM section")
+    sections = cur.fetchall()
+    sections_list = [i[1] for i in sections]
+
+    cur.execute("SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC ")
+    annees = cur.fetchall()
+
+    if request.method == 'POST':
+        new_section = request.form['new_section']
+        
+        #verify if the input exists and have a text in it 
+        if new_section and new_section.strip() != '' :
+            #don't allow the admin to add an existing section
+            if new_section not in sections_list:
+                cur.execute("INSERT INTO section (lib_section, lib_annee_univ) VALUES (%s, %s)",
+                            (new_section, obtenir_annee_universitaire_en_cours() ))
+                mysql.connection.commit()
+                cur.close()
+                return redirect(url_for('ajouter_section'))
+            else: 
+                flash('la section existe déjà !', 'error')
+                return render_template('ajouter_section.html', sections = sections, sections_list = sections_list)
+        
+    return render_template('ajouter_section.html', sections = sections, sections_list = sections_list)
+
+
+@app.route('/modifier_section_informations/<id_section>')
+def modifier_section_informations(id_section):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM section WHERE id_section = %s ", (id_section,))
+    section = cur.fetchone()
+    return render_template('modifier_section.html', section = section)
+
+
+@app.route('/modifier_section/<id_section>', methods = ['GET', 'POST'])
+def modifier_section(id_section):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM section")
+    sections = cur.fetchall()
+    sections_list = [i[1] for i in sections]
+    
+    cur.execute("SELECT lib_section FROM section WHERE id_section = %s", (id_section,))
+    current_section_name = cur.fetchone()[0]
+
+    if request.method == 'POST':
+        lib_section = request.form['lib_section'].strip()
+
+        if lib_section == '':
+            flash("La sélection ne peut pas être vide !", "error")
+            return redirect(url_for('modifier_section_informations', id_section=id_section))
+
+        if lib_section != current_section_name and lib_section in sections_list:
+            flash("le nom de la section existe déjà !", "error")
+            return redirect(url_for('modifier_section_informations', id_section=id_section))
+
+        cur.execute("UPDATE section SET lib_section = %s WHERE id_section = %s", (lib_section, id_section))
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('ajouter_section'))
+
+    return render_template('modifier_section_informations.html', id_section=id_section)
+
+
+
+@app.route('/supprimer_section/<id_section>')
+def supprimer_section(id_section):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE from section WHERE id_section = %s ", (id_section,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('ajouter_section'))
 
 
 @app.route('/ajouter_promotion', methods=['GET', 'POST'])
@@ -563,31 +670,30 @@ def ajouter_promotion():
         # Check if 'annee_univ' is in session
         if 'annee_univ' in session:
             query = """
-                    SELECT matricule, nom_prenom, email, etudiants.code_dep, intitulé_dep, lib_annee_univ 
+                    SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
                     FROM etudiants 
-                    JOIN departement ON etudiants.code_dep = departement.code_dep
-                    JOIN annee_universitaire ON etudiants.id_annee_univ = annee_universitaire.id_annee_univ
-                    WHERE lib_annee_univ = %s
+                    JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
+                    JOIN annee_universitaire ON etudiants.lib_annee_univ = annee_universitaire.lib_annee_univ
+                    WHERE etudiants.lib_annee_univ = %s
                     ORDER BY code_dep ASC;
                     """
             cur.execute(query, (session['annee_univ'],))
             etudiants = cur.fetchall()
-            print("hhhh")
+            
 
         else:
             query = """
-                    SELECT matricule, nom_prenom, email, etudiants.code_dep, intitulé_dep, lib_annee_univ 
+                    SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
                     FROM etudiants 
-                    JOIN departement ON etudiants.code_dep = departement.code_dep
-                    JOIN annee_universitaire ON etudiants.id_annee_univ = annee_universitaire.id_annee_univ
-                    WHERE lib_annee_univ = '2024-2025'
+                    JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
+                    JOIN annee_universitaire ON etudiants.lib_annee_univ = annee_universitaire.lib_annee_univ
+                    WHERE etudiants.lib_annee_univ = %s
                     ORDER BY code_dep ASC;
                     """
-            cur.execute(query)
+            cur.execute(query,(obtenir_annee_universitaire_en_cours(),))
             etudiants = cur.fetchall()
             
         cur.close()
-            
 
         
 
@@ -611,40 +717,70 @@ def ajouter_promotion():
                     return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
 
                 for sheet_name, df in promotion_data.items():
-                    required_columns = ['matricule', 'nom_prenom', 'email', 'mot_de_pass', 'code_dep', 'id_annee_univ']
+                    required_columns = ['matricule', 'nom_prenom', 'email', 'intitulé_dep', 'lib_annee_univ']
                     if not all(col in df.columns for col in required_columns):
                         flash('Le fichier Excel est manquant de certaines colonnes obligatoires', 'error')
                         return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+
+                    #extract the annee_univ from the excel file 
+                    lib_annee_univ_from_excel = df['lib_annee_univ'].iloc[0] 
+                    session['annee_univ'] = lib_annee_univ_from_excel
+                    
+                    cur = mysql.connection.cursor()
+                    cur.execute("SELECT * from annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
+                    annee = cur.fetchone()
+                    if not annee :
+                        cur.execute("INSERT INTO annee_universitaire (lib_annee_univ) VALUES (%s)", (lib_annee_univ_from_excel,))
+                        mysql.connection.commit()
+
+                    cur.close()
 
                     for index, row in df.iterrows():
                         matricule = row.get('matricule', None)
                         nom_prenom = row.get('nom_prenom', None)
                         email = row.get('email', None)
-                        mot_de_pass = row.get('mot_de_pass', None)
-                        code_dep = row.get('code_dep', None)
-                        id_annee_univ = row.get('id_annee_univ', None)
+                        mot_de_pass = generate_password(8)
+                        intitulé_dep = row.get('intitulé_dep', None)
+                        lib_annee_univ = row.get('lib_annee_univ', None)
 
                         try:
                             cur = mysql.connection.cursor()
                             query = """
-                                    INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ) 
+                                    INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ) 
                                     VALUES (%s, %s, %s, %s, %s, %s)
                                     """
-                            cur.execute(query, (matricule, nom_prenom, email, mot_de_pass, code_dep, id_annee_univ))
+                            cur.execute(query, (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ))
                             mysql.connection.commit()
                             cur.close()
+                            
                         except IntegrityError:
                             flash('Cette promotion existe déjà', 'error')
                             return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
-
                 flash('Fichier téléchargé avec succès et données insérées', 'success')
-                return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                return redirect(url_for('ajouter_promotion'))
             else:
                 flash('Seuls les fichiers Excel sont acceptables', 'error')
 
         return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
 
     return redirect(url_for('login'))
+
+
+@app.route("/envoyer_formulaire" , methods = ['GET', 'POST'])
+def envoyer_formulaire():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM departement ")
+    departements = cur.fetchall()
+    etudiants_info = []
+
+    if request.method == 'POST':
+        departements_selectionnees = request.form.getlist('departement')
+        cur.execute("""SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
+                     ORDER BY intitulé_dep;""", (departements_selectionnees,))
+        etudiants_info = cur.fetchall()
+        
+
+    return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info)
 
 
 if __name__ == "__main__":

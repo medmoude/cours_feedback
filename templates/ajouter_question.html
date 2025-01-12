@@ -1,68 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Ajouter une question</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <!--bootsrap link-->
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
+    <script>
+		WebFont.load({
+			google: {"families":["Public Sans:300,400,500,600,700"]},
+			custom: {"families":["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ["{{ url_for('static', filename = 'assets/css/fonts.min.css') }}"]},
+			active: function() {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
+
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Ajouter une question</h4>
+    <div class="wrapper">
+
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
+              <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="form-group">
-                        <label for="question" class="form-label">Question:</label>
-                        <input type="text" id="question" name="question" class="form-control" placeholder="Enter the question" required>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label for="section" class="form-label">Section:</label>
-                        <select id="section" name="section" class="form-control" required>
-                            <option value="" disabled selected>Choisir une section</option>
-                            {% for section in sections %}
-                                <option value="{{ section.0 }}">{{ section.1 }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label for="responses" class="form-label">Réponses possibles et pondérations :</label>
-                        <div id="responses-container">
-                            <div class="input-group mb-2">
-                                <input type="text" name="reponse-A" class="form-control" placeholder="Response A" required>
-                                <input type="number" name="ponderation-A" class="form-control" placeholder="Poids A" min="0" max="100" style="width: 150px;" required>
-                            </div>
-                            <div class="input-group mb-2">
-                                <input type="text" name="reponse-B" class="form-control" placeholder="Response B" required>
-                                <input type="number" name="ponderation-B" class="form-control" placeholder="poids de B" min="0" max="100" style="width: 150px;" required>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">ajouter une Option</button>
-                    </div>
-                    <div class="mt-4">
-                        <input type="submit" value="Envoyer" class="btn btn-primary">
-                        <input type="reset" value="Effacer" class="btn btn-secondary">
-                    </div>
-                </form>
-                <br>
-                <a href="{{ url_for('questionnaire') }}">
-                    <h4>Liste des questions</h4>
-                </a>
-            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
         </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item ">
+                <a href="{{ url_for('visualisation') }}" class="collapsed" >
+                  <i class="fas fa-home"></i>
+                  <p>Acueill</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('questionnaire') }}" class="collapsed" >
+                  <i class="fas fa-question"></i>
+                  <p>Questionnaire</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
+                  <i class="fas fa-plus-circle"></i>
+                  <p>Ajouter une promotion</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('envoyer_formulaire') }}" class="collapsed" >
+                  <i class="fas fa-paper-plane"></i>
+                  <p>Envoyer formulaire</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <p>logout</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+    
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+              <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                  <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                  <i class="gg-menu-left"></i>
+                </button>
+              </div>
+              <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+              </button>
+            </div>
+            <!-- End Logo Header -->
+          </div>
+        </div>
+    
+        <div class="container">
+          <div class="page-inner" >
+            <div class="page-header">
+              <h4 class="page-title">Ajouter une question</h4>
+              <ul class="breadcrumbs">
+                <li class="nav-home">
+                  <a href="#">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">Ajouter une question</a>
+                </li>
+              </ul>
+            </div>
+            <div class="page-category">
+                <!-- ajouter question -->
+                <div class="container mt-5">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Ajouter une question</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="question-form" action=" {{url_for('ajouter_question')}} ">
+                                <div class="form-group mb-0">
+                                    <label for="section">Choisir un section: </label>
+                                    <select id="section" name="section" class="form-control">
+                                        {% for section in sections %}
+                                            <option value="{{section[0]}}"> {{section[1]}} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="type" class="form-label">Type de question:</label>
+                                    <select id="type" name="type" class="form-control" onchange="toggleQuestionType()" required>
+                                        <option value="" disabled selected>Choisir un type</option>
+                                        <option value="textarea">Text</option>
+                                        <option value="checkbox">Checkbox</option>
+                                        <option value="radio">Radio</option>
+                                        <option value="select">Select</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mt-3">
+                                    <label for="question" class="form-label">Question:</label>
+                                    <textarea id="question" name="question" class="form-control" placeholder="Enter the question" required></textarea>
+                                </div>
+                                <div id="options-section" style="display: none;">
+                                    <div class="form-group mt-3">
+                                        <label for="responses" class="form-label">Réponses possibles et pondérations :</label>
+                                        <div id="responses-container">
+                                            <div class="input-group mb-2">
+                                                <input type="text" name="reponse-A" class="form-control" placeholder="Response A" required>
+                                                <input type="number" name="ponderation-A" class="form-control" placeholder="Poids A" min="0" max="100" style="width: 150px;" required>
+                                            </div>
+                                            <div class="input-group mb-2">
+                                                <input type="text" name="reponse-B" class="form-control" placeholder="Response B" required>
+                                                <input type="number" name="ponderation-B" class="form-control" placeholder="Poids B" min="0" max="100" style="width: 150px;" required>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">Ajouter une Option</button>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <input type="submit" value="Envoyer" class="btn btn-primary">
+                                    <input type="reset" value="Effacer" class="btn btn-warning">
+                                </div>
+                            </form>
+                            <br>
+                            <a href="{{ url_for('questionnaire') }}">
+                                <h4>Liste des questions</h4>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!--end ajouter question-->
+            </div>
+            <!--end page category-->
+          </div>
+        </div>
+    
+        <footer class="footer">
+          <div class="container-fluid">
+            <p class="pull-right">ISMS developers team</p>
+          </div>
+        </footer>
+      </div>
     </div>
+    
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
 
     <script>
         let optionCount = 2;
 
+        // Toggle between question types
+        function toggleQuestionType() {
+            const type = document.getElementById('type').value;
+            const optionsSection = document.getElementById('options-section');
+            const questionInput = document.getElementById('question');
+
+            if (type === 'textarea') {
+                optionsSection.style.display = 'none';
+                questionInput.setAttribute('placeholder', 'Enter the question');
+
+                // Disable validation for the dynamically created options and ponderation when hidden
+                document.querySelectorAll('[name^="reponse-"]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                document.querySelectorAll('[name^="ponderation-"]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+            } else {
+                optionsSection.style.display = 'block';
+                questionInput.setAttribute('placeholder', 'Enter the question with options');
+
+                // Enable validation for the options when the section is visible
+                document.querySelectorAll('[name^="reponse-"]').forEach(input => {
+                    input.setAttribute('required', 'true');
+                });
+                document.querySelectorAll('[name^="ponderation-"]').forEach(input => {
+                    input.setAttribute('required', 'true');
+                });
+            }
+        }
+
+        // Add an option dynamically
         function addOption() {
             const container = document.getElementById('responses-container');
             optionCount++;
             const optionLabel = String.fromCharCode(64 + optionCount);
 
-            // Create input for the response
             const inputGroup = document.createElement('div');
             inputGroup.className = 'input-group mb-2';
 
@@ -73,23 +264,36 @@
             inputResponse.placeholder = `Response ${optionLabel}`;
             inputResponse.required = true;
 
-            // Create input for the ponderation
             const inputPonderation = document.createElement('input');
             inputPonderation.type = 'number';
             inputPonderation.name = `ponderation-${optionLabel}`;
             inputPonderation.className = 'form-control';
-            inputPonderation.placeholder = `poids de ${optionLabel}`;
+            inputPonderation.placeholder = `Poids ${optionLabel}`;
             inputPonderation.min = 0;
             inputPonderation.max = 100;
             inputPonderation.style = "width: 150px;";
 
-            // Append response and ponderation fields to the input group
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-danger ml-2';
+            removeButton.textContent = 'Supprimer';
+            removeButton.onclick = () => container.removeChild(inputGroup);
+
             inputGroup.appendChild(inputResponse);
             inputGroup.appendChild(inputPonderation);
+            inputGroup.appendChild(removeButton);
 
-            // Add the input group to the container
             container.appendChild(inputGroup);
         }
     </script>
+    
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Chart JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
 </body>
 </html>

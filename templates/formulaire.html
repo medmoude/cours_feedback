@@ -136,56 +136,68 @@
             <!-- page category -->
             <div class="page-category">
               <!--formulaire-->
-              <h2>le cours : {{cours [1]}} </h2>
+              <h2 class="mb-4">le cours : {{cours [1]}} </h2>
               <div class="container">
-                <h3>Évaluation du Cours</h3>
                 <form action="{{ url_for('insert_formulaire', cours_code=cours_code) }}" method="post">
                   {% for section in sections %}
-                    Section : {{section[1] }}
-
-                    <!-- Initialize a flag to check if the section has questions -->
-                    {% set has_questions = false %} 
+                    <h4>Section : {{section[1] }}</h4>
                     
                     <!-- Loop through all questions to check if this section has any -->
                     {% for question in questions %}
-                        {% if section[0] == question[2] %} 
-                            {% set has_questions = true %}  
+                        {% if section[0] == question[2] %}
+                            <!--textarea-->
+                            {% if question[3] == 'textarea' %}
+                              <div class="question" style="border:none; padding: 0px;">
+                                <label for="textarea">{{question[1]}} </label>
+                                <textarea required></textarea>
+                              </div>
+                            <!--radio button-->
+                            {% elif question[3] == 'radio' %}
+                              <div class="question">
+                                  <p>{{ question[1] }}</p> 
+                  
+                                  {% for reponse in reponses %}
+                                      {% if reponse[3] == question[0] and section[0] == question[2] %}
+                                          <label>
+                                              <input type="radio" name="question_{{ question[0] }}" value="{{ reponse[2] }}" required>
+                                              {{ reponse[1] }}
+                                          </label>
+                                      {% endif %}
+                                  {% endfor %}
+                              </div>
+                            <!--checkbox-->
+                            {% elif question[3] == 'checkbox' %}
                             <div class="question">
                                 <p>{{ question[1] }}</p> 
                 
                                 {% for reponse in reponses %}
                                     {% if reponse[3] == question[0] and section[0] == question[2] %}
                                         <label>
-                                            <input type="radio" name="question_{{ question[0] }}" value="{{ reponse[2] }}" required>
+                                            <input type="checkbox" name="question_{{ question[0] }}" value="{{ reponse[2] }}" required>
                                             {{ reponse[1] }}
                                         </label>
                                     {% endif %}
                                 {% endfor %}
                             </div>
+                            <!--select -->
+                            {% elif question[3] == 'select' %}
+                            <div class="question"> 
+                                <label for="">{{question[1]}} </label> <br>
+                                <select>
+                                  {% for reponse in reponses %}
+                                    {% if reponse[3] == question[0] and section[0] == question[2] %}
+                                      <option name="question_{{ question[0] }}" value="{{ reponse[2] }}">{{reponse[1]}} </option>
+                                    {% endif %}
+                                  {% endfor %}
+                                </select>
+                            </div>
+
+                          {% endif %}
                         {% endif %}
                     {% endfor %}
-                
-                    <!-- Only display the section if it has questions -->
-                    {% if has_questions %}
-                      <h3>Section: {{ section[1] }}</h3>
-                
-                      <div class="section-content">
-                            
-                      </div>
-                
-                    {% else %}
-                        <!--this section is hidden because it doesn't have any questions-->
-                    {% endif %}
-                  
                   {% endfor %}
-              
 
-                  <div >
-                    <p>Quels changements recommendez-vous pour ameliorer ce cours ?</p>
-                    <textarea name = "feedback" placeholder="Écrivez ici..."  required></textarea>
-                  </div>
-        
-                    <button type="submit">Envoyer</button>
+                  <button type="submit">Envoyer</button>
                 </form>
               </div>
               <!--end formulaire-->

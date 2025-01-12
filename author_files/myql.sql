@@ -9,7 +9,7 @@ intitulé_niv VARCHAR(50) NOT NULL
 
 CREATE TABLE departement (
 code_dep INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-intitulé_dep VARCHAR(50) NOT NULL,
+intitulé_dep VARCHAR(50) NOT NULL UNIQUE,
 code_niv INT NOT NULL,
 FOREIGN KEY (code_niv) REFERENCES niveau(code_niv)
 );
@@ -23,32 +23,34 @@ FOREIGN KEY (code_niv) REFERENCES niveau(code_niv)
 
 CREATE TABLE annee_universitaire (
 id_annee_univ INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_annee_univ VARCHAR(255) NOT NULL
+lib_annee_univ VARCHAR(50) NOT NULL UNIQUE
 ) AUTO_INCREMENT = 2024 ; 
 
 CREATE TABLE etudiants (
 matricule INT NOT NULL ,
-nom_prenom VARCHAR (100) NOT NULL,
+nom_prenom VARCHAR (255) NOT NULL,
 email VARCHAR (100) NOT NULL,
-mot_de_pass VARCHAR(255) NOT NULL,
-code_dep INT NOT NULL,
-id_annee_univ INT NOT NULL,
-PRIMARY KEY(matricule, id_annee_univ),
-FOREIGN KEY (code_dep) REFERENCES departement(code_dep),
-FOREIGN KEY (id_annee_univ) REFERENCES annee_universitaire(id_annee_univ)
+mot_de_pass VARCHAR(255) NOT NULL DEFAULT '1234',
+intitulé_dep VARCHAR(255) NOT NULL,
+lib_annee_univ VARCHAR(100) NOT NULL,
+PRIMARY KEY(matricule, lib_annee_univ),
+FOREIGN KEY (intitulé_dep) REFERENCES departement(intitulé_dep),
+FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ)
 );
 
 CREATE TABLE section (
 id_section INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_section VARCHAR(255) NOT NULL,
-id_annee_univ INT NOT NULL,
-FOREIGN KEY (id_annee_univ) REFERENCES annee_universitaire(id_annee_univ)
+lib_section VARCHAR(100) NOT NULL,
+lib_annee_univ VARCHAR(100) NOT NULL,
+FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ)
 );
 
 CREATE TABLE question (
 id_question INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 lib_question VARCHAR(255) NOT NULL,
 id_section INT NOT NULL,
+type_question VARCHAR(100) NOT NULL,
+reponse_required BOOLEAN DEFAULT TRUE,
 FOREIGN KEY (id_section) REFERENCES section(id_section)
 );
 
@@ -59,6 +61,7 @@ poids_reponse INT NOT NULL,
 id_question INT NOT NULL,
 FOREIGN KEY (id_question) REFERENCES question(id_question)
 );
+
 
 CREATE TABLE images (
 id_image INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -77,8 +80,8 @@ FOREIGN KEY (code_sem) REFERENCES semestre(code_sem)
 );
 
 CREATE TABLE evaluer (
-evaluation INT NOT NULL ,
-commentaire TEXT NOT NULL,
+evaluation INT NOT NULL,
+commentaire TEXT ,
 matricule INT NOT NULL ,
 cours_code VARCHAR(50) NOT NULL,
 PRIMARY KEY(matricule, cours_code),
@@ -106,18 +109,6 @@ INSERT INTO semestre (intitulé_sem, code_niv) VALUES
 ("S5", 3),
 ("S6", 3);
 
-INSERT INTO annee_universitaire (lib_annee_univ) VALUES
-("2024-2025"),
-("2025-2026"),
-("2026-2027"),
-("2027-2028"),
-("2028-2029"),
-("2029-2030"),
-("2030-2031"),
-("2031-2032"),
-("2032-2033"),
-("2033-2034")
-;
 
 -- cours insrtions
 INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES 
@@ -207,9 +198,6 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ("SEA213", "Management", 5)
 ;
 
-INSERT INTO section (lib_section, id_annee_univ) VALUES
-("prof",2024),
-("etudiant",2024);
 
 
 #select from all tables (show the data)
@@ -217,17 +205,21 @@ SELECT * FROM niveau;
 SELECT * FROM departement;
 SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
-SELECT * FROM etudiants order by (id_annee_univ and code_dep) ASC;
+SELECT * FROM etudiants order by (lib_annee_univ and intitulé_dep) ASC;
 SELECT * FROM evaluer;
 SELECT * FROM images;
 SELECT * FROM section;
-SELECT * FROM annee_universitaire;
+SELECT * FROM question;
+SELECT * FROM reponse;
+
+SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC;
+
 
 
 #showing students relevant courses 
 SELECT cours_code, intitulé_cours
 FROM etudiants
-JOIN departement ON etudiants.code_dep = departement.code_dep
+JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
 JOIN niveau ON departement.code_niv = niveau.code_niv
 JOIN semestre ON niveau.code_niv = semestre.code_niv
 JOIN cours ON semestre.code_sem = cours.code_sem
@@ -254,4 +246,4 @@ FROM evaluer
 JOIN cours ON evaluer.cours_code = cours.cours_code
 GROUP BY intitulé_cours;
 
-SELECT * FROM annee_universitaire ORDER BY id_annee_univ ASC;
+SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN ('SEA L2', 'sdid l2') ORDER BY intitulé_dep;

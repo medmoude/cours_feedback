@@ -2,9 +2,13 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>changer mot de pass</title>
+    <title>Modifier une section</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <!--bootsrap link-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Fonts and icons -->
     <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
@@ -17,7 +21,7 @@
 			}
 		});
 	</script>
-    
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
@@ -34,7 +38,7 @@
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
             <a href="index.html" class="logo">
-              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }} " alt="navbar brand" class="navbar-brand" height="20" /> 
+              <img src="{{ url_for('static', filename = 'assets/img/isms.jpeg') }}" alt="navbar brand" class="navbar-brand" height="20" /> 
               <span style="font-size: large; color: white; margin-left: 10px;"> ISMS</span>
             </a>
             <div class="nav-toggle">
@@ -55,27 +59,33 @@
           <div class="sidebar-content">
             <ul class="nav nav-secondary">
               <li class="nav-item ">
-                <a href="{{ url_for('index') }}" class="collapsed" >
+                <a href="{{ url_for('visualisation') }}" class="collapsed" >
                   <i class="fas fa-home"></i>
                   <p>Acueill</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="/profile/{{session['user_id'] }}" class="collapsed" >
-                  <i class="fas fa-user"></i>
-                  <p>profile</p>
+                <a href="{{ url_for('questionnaire') }}" class="collapsed" >
+                  <i class="fas fa-question"></i>
+                  <p>Questionnaire</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')" >
+                <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
+                  <i class="fas fa-plus-circle"></i>
+                  <p>Ajouter une promotion</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('envoyer_formulaire') }}" class="collapsed" >
+                  <i class="fas fa-paper-plane"></i>
+                  <p>Envoyer formulaire</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                   <i class="fas fa-sign-out-alt"></i>
                   <p>logout</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="#" class="collapsed" >
-                  <i class="fas fa-key"></i>
-                  <p>changer mot de passe</p>
                 </a>
               </li>
             </ul>
@@ -109,9 +119,9 @@
         </div>
     
         <div class="container">
-          <div class="page-inner">
+          <div class="page-inner" >
             <div class="page-header">
-              <h4 class="page-title">Changer mot de passe</h4>
+              <h4 class="page-title">Modifier une section</h4>
               <ul class="breadcrumbs">
                 <li class="nav-home">
                   <a href="#">
@@ -122,46 +132,41 @@
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">Changer mot de passe</a>
+                  <a href="#">Modifier une section</a>
                 </li>
               </ul>
             </div>
             <div class="page-category">
-                <!-- changer mot de pass -->
-                <div class="changer-mot-de-pass-container">
-                    <h2>Changer mot de passe</h2>
-
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                      {% if messages %}
-                        <ul id="flashed-messages">
-                          {% for category, message in messages %}
-                            <li class="{{category}}">{{message}}</li>
-                          {% endfor %}
+                <!-- modifier section -->
+                
+                {% with messages = get_flashed_messages (with_categories = true) %}
+                    {% if messages %}
+                        <ul>
+                            {% for category, message in messages %}
+                                <li class="{{category}}" > {{message}} </li>
+                            {% endfor %}
                         </ul>
-                      {% endif %}
-                    {% endwith %}
+                    {% endif %}
 
-                    <form action="{{url_for('changer_mot_de_pass')}}" method="POST">
-                        <div class="input-group">
-                            <label for="actuel-mot-de-pass">Actuel mot de passe</label>
-                            <input type="password" id="actuel-mot-de-pass" name="actuel-mot-de-pass" required>
-                        </div>
-                
-                        <div class="input-group">
-                            <label for="nouveau-mot-de-pass">Nouveau mot de pass</label>
-                            <input type="password" id="nouveau-mot-de-pass" name="nouveau-mot-de-pass" required>
-                        </div>
-                
-                        <div class="input-group">
-                            <label for="confirmer-mot-de-pass">Confirmer Nouveau mot de pass</label>
-                            <input type="password" id="confirmer-mot-de-pass" name="confirmer-mot-de-pass" required>
-                        </div>
-                
-                        <button type="submit" class="submit-btn">Changer mot de pass</button>
-                    </form>
-                </div>                
-                <!-- end changer mot de pass -->
+                {% endwith %}
 
+                <div class="container mt-5">
+                    <!-- Card Container -->
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Modifier la section </h4>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('modifier_section', id_section = section[0]) }}" method="POST">
+                                <div class="d-flex">
+                                    <input type="text" class="form-control" name="lib_section" placeholder="Enter text" value="{{section[1]}}" aria-label="Text input">
+                                    <button class="btn btn-warning ms-2" type="submit">Modifier</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!--end modifier section -->
             </div>
             <!--end page category-->
           </div>
@@ -174,31 +179,11 @@
         </footer>
       </div>
     </div>
-
-    <script>
-      //a function to hide the flshed messages 
-      setTimeout(function() {
-          var messages = document.getElementById("flashed-messages");
-          var category = messages.getElementsByTagName("li")
-          if (messages) {
-              messages.style.display = "none";
-              //if password has been changed, go back to index
-              if (category[0].className === 'success' && category[0].textContent === 'Le mot de passe a été changé avec succès'){
-                window.location.href = "{{ url_for('index') }}";
-              }
-          }
-      }, 3000); 
-
-      document.addEventListener('click', function() {
-        clearTimeout(); // Cancel any scheduled action
-    });
-    </script>
     
     <!--   Core JS Files   -->
     <script src="{{ url_for('static', filename = 'assets/js/core/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
     <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
-
     
     <!-- jQuery Scrollbar -->
     <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>

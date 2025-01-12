@@ -2,10 +2,12 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>index</title>
+    <title>Envoyer formulaire</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <!--bootsrap link-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Fonts and icons -->
@@ -119,7 +121,7 @@
         <div class="container">
           <div class="page-inner" >
             <div class="page-header">
-              <h4 class="page-title">Visualisation</h4>
+              <h4 class="page-title">Envoyer formulaire</h4>
               <ul class="breadcrumbs">
                 <li class="nav-home">
                   <a href="#">
@@ -130,29 +132,59 @@
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">visualisation</a>
+                  <a href="#">envoyer du formulaire</a>
                 </li>
               </ul>
             </div>
             <div class="page-category">
-                <!-- visualisation -->
-                <h1 >Données des évaluation</h1>
-                <table border="1">
-                    <tr>
-                        <th>Cours</th>
-                        <th>Moyenne des évaluation</th>
-                    </tr>
-                    {% for row in evaluation_data %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-
-                <h4>la moyenne des évaluations des cours</h4>
-                <canvas id="evaluationChart" ></canvas>
-                <!--end visualisation-->
+                <!-- envoyer formulaire -->
+                 <div class="container mt-5">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Envoyer la formulaire</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{{url_for('envoyer_formulaire')}}">
+                                <h5 class="mb-3">Sélectionnez le département auquel vous souhaitez envoyer le formulaire </h5>
+                                <div class="form-group">
+                                    <label for="tous_departement">
+                                        <input type="checkbox" name="tous_departement" id="tous_departement">
+                                        Selectionner tous
+                                    </label> <br/>
+                                    {% for departement in departements %}
+                                        <label for="departement_{{loop.index}}" class="me-4">
+                                            <input type="checkbox" name="departement" id="departement_{{loop.index}}" value="{{departement[1]}}">
+                                            {{departement[1]}}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-3">
+                                    <input type="submit" value="Envoyer" class="btn btn-primary" >
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <h4></h4>
+                    {% if etudiants_info %}
+                    <div class="table mt-5">
+                        <table>
+                            <tr>
+                                <th>email</th>
+                                <th>mot de pass </th>
+                                <th>departement</th>
+                            </tr>
+                            {% for info in etudiants_info %}
+                            <tr>
+                                <td>{{info[0]}}</td>
+                                <td>{{info[1]}}</td>
+                                <td>{{info[2]}}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    {% endif %}
+                 </div>
+                <!--end envoyer formulaire-->
             </div>
             <!--end page category-->
           </div>
@@ -171,81 +203,43 @@
     <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
     <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
 
-    <!--the script for chart.js functionnality-->
-    <script>
-        fetch("/chart-data")
-            .then(response => response.json())
-            .then(data => {
-                const labels = data.map(item => item[0]);
-                // Convert scores to numbers (in case they're stored as strings)
-                const scores = data.map(item => Number(item[1])); // Ensure scores are numbers
-                console.log(labels)
-                console.log(scores)
-    
-                // Calculate the mean of the scores
-                const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    
-                const ctx = document.getElementById('evaluationChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'moyenne des évaluations',
-                                data: scores,
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderColor: 'rgba(244, 244, 244, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'ligne de la moyenne',
-                                data: Array(scores.length).fill(mean),
-                                borderColor: 'rgba(255, 99, 132, 1)', // Change this to your desired color
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.1,
-                                type: 'line'
-                            }
-                        ]
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                ticks: {
-                                    color: 'black'
-                                },
-                                grid: {
-                                    color: 'rgba(200, 200, 200, 0.3)'
-                                }
-                            },
-                            y: {
-                                ticks: {
-                                    color: 'black'
-                                },
-                                grid: {
-                                    color: 'rgba(200, 200, 200, 0.3)'
-                                },
-                                beginAtZero: true,
-                                suggestedMin: Math.min(...scores, mean) - 1,
-                                suggestedMax: Math.max(...scores, mean) + 1
-                            }
-                        }
-                    }
-                });
-            });
-    </script>
-    
-    
-
-    
     <!-- jQuery Scrollbar -->
     <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
 
-    <!-- Chart JS -->
-    <script src="{{ url_for('static', filename = 'assets/js/plugin/chart.js/chart.min.js') }}"></script>
-
     <!-- Kaiadmin JS -->
     <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+
+    <!--script for checking or unchecking all the checkboxes -->
+    <script>
+        let check_tous_departement = document.getElementById('tous_departement');
+        let departements = document.getElementsByName('departement');
+
+        tous_departement.addEventListener('change',function(){
+            if(check_tous_departement.checked){
+                departements.forEach(departement =>{
+                    departement.checked = true;
+                });
+
+            }else{
+                departements.forEach(departement => {
+                    departement.checked = false;
+                });
+            }
+        });
+
+
+        //check the checkbox when all options are selected
+        departements.forEach(departement => {
+            departement.addEventListener('change', function() {
+                // Check if all department checkboxes are checked
+                if (Array.from(departements).every(departement => departement.checked)) {
+                    check_tous_departement.checked = true; 
+                } else {
+                    check_tous_departement.checked = false; 
+                }
+            });
+        });
+
+    </script>
   </body>
 </html>
