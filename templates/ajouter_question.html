@@ -83,6 +83,12 @@
                 </a>
               </li>
               <li class="nav-item ">
+                <a href="{{ url_for('parametres') }}" class="collapsed" >
+                  <i class="fas fa-cogs"></i>
+                  <p>Paramètres</p>
+                </a>
+              </li>
+              <li class="nav-item ">
                 <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                   <i class="fas fa-sign-out-alt"></i>
                   <p>logout</p>
@@ -147,7 +153,7 @@
                             <form method="POST" id="question-form" action=" {{url_for('ajouter_question')}} ">
                                 <div class="form-group mb-0">
                                     <label for="section">Choisir un section: </label>
-                                    <select id="section" name="section" class="form-control">
+                                    <select id="section" name="section" class="form-control" required>
                                         {% for section in sections %}
                                             <option value="{{section[0]}}"> {{section[1]}} </option>
                                         {% endfor %}

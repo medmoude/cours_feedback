@@ -2,13 +2,16 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>index</title>
+    <title>Visualisation</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="{{ url_for('static', filename = 'assets/img/kaiadmin/favicon.ico') }} " type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
+    <!--bootsrap link-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Fonts and icons -->
     <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }} "></script>
-
     <script>
 		WebFont.load({
 			google: {"families":["Public Sans:300,400,500,600,700"]},
@@ -23,7 +26,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style-formulaire.css') }}  ">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
 
   </head>
   <body>
@@ -56,27 +59,39 @@
           <div class="sidebar-content">
             <ul class="nav nav-secondary">
               <li class="nav-item ">
-                <a href="{{ url_for('index') }}" class="collapsed" >
+                <a href="{{ url_for('visualisation') }}" class="collapsed" >
                   <i class="fas fa-home"></i>
                   <p>Acueill</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="/profile/{{session['user_id'] }}" class="collapsed" >
-                  <i class="fas fa-user"></i>
-                  <p>profile</p>
+                <a href="{{ url_for('questionnaire') }}" class="collapsed" >
+                  <i class="fas fa-question"></i>
+                  <p>Questionnaire</p>
                 </a>
               </li>
               <li class="nav-item ">
-                <a href="{{ url_for('logout') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+                <a href="{{ url_for('ajouter_promotion') }}" class="collapsed" >
+                  <i class="fas fa-plus-circle"></i>
+                  <p>Ajouter une promotion</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('envoyer_formulaire') }}" class="collapsed" >
+                  <i class="fas fa-paper-plane"></i>
+                  <p>Envoyer formulaire</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('parametres') }}" class="collapsed" >
+                  <i class="fas fa-cogs"></i>
+                  <p>Paramètres</p>
+                </a>
+              </li>
+              <li class="nav-item ">
+                <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                   <i class="fas fa-sign-out-alt"></i>
                   <p>logout</p>
-                </a>
-              </li>
-              <li class="nav-item ">
-                <a href="{{ url_for('changer_mot_de_pass') }}" class="collapsed" >
-                  <i class="fas fa-key"></i>
-                  <p>changer mot de passe</p>
                 </a>
               </li>
             </ul>
@@ -110,9 +125,9 @@
         </div>
     
         <div class="container">
-          <div class="page-inner">
+          <div class="page-inner" >
             <div class="page-header">
-              <h4 class="page-title">Formulaire</h4>
+              <h4 class="page-title">Paramètres</h4>
               <ul class="breadcrumbs">
                 <li class="nav-home">
                   <a href="#">
@@ -123,86 +138,46 @@
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">Questionnaire</a>
+                  <a href="#">Paramètres</a>
                 </li>
-                <li class="separator">
-                    <i class="icon-arrow-right"></i>
-                  </li>
-                  <li class="nav-item">
-                    <a href="#">Formulaire</a>
-                  </li>
               </ul>
             </div>
-            <!-- page category -->
             <div class="page-category">
-              <!--formulaire-->
-              <h2 class="mb-4">le cours : {{cours [1]}} </h2>
-              <div class="container">
-                <form action="{{ url_for('insert_formulaire', cours_code=cours_code) }}" method="post">
-                  {% for section in sections %}
-                    <h4>Section : {{section[1] }}</h4>
-                    
-                    <!-- Loop through all questions to check if this section has any -->
-                    {% for question in questions %}
-                        {% if section[0] == question[2] %}
-                            <!--textarea-->
-                            {% if question[3] == 'textarea' %}
-                              <div class="question"  style="border:none; padding: 0px;">
-                                <label for="textarea">{{question[1]}} </label>
-                                <textarea name="commentaire_{{question[0]}}" required></textarea>
-                              </div>
-                            <!--radio button-->
-                            {% elif question[3] == 'radio' %}
-                              <div class="question">
-                                  <p>{{ question[1] }}</p> 
-                  
-                                  {% for reponse in reponses %}
-                                      {% if reponse[3] == question[0] and section[0] == question[2] %}
-                                          <label>
-                                              <input type="radio" name="question_{{question[0]}}" value="{{reponse[2]}}" required>
-                                              {{ reponse[1] }}
-                                          </label>
-                                      {% endif %}
-                                  {% endfor %}
-                              </div>
-                            <!--checkbox-->
-                            {% elif question[3] == 'checkbox' %}
-                            <div class="question" >
-                                <p>{{ question[1] }}</p> 
-                
-                                {% for reponse in reponses %}
-                                    {% if reponse[3] == question[0] and section[0] == question[2] %}
-                                        <label>
-                                            <input type="checkbox" name="question_{{question[0]}}" value="{{reponse[2]}}" >
-                                            {{ reponse[1] }}
-                                        </label>
-                                    {% endif %}
-                                {% endfor %}
+                <!-- paramètres -->
+                <div class="container mb-0">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h3>Les sections</h3>
+                        </div>
+                        <div class="card-body">
+                            <a href="{{url_for('ajouter_section')}}">Voir et ajouter des sections</a>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Le seuil</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="">
+                                <div class="input-group-append">
+                                    <input type="button" class="btn btn-warning ms-2" value="modifier">
+                                </div>
                             </div>
-                            <!--select -->
-                            {% elif question[3] == 'select' %}
-                            <div class="question"> 
-                                <label for="">{{question[1]}} </label> <br>
-                                <select name="question_{{question[0]}}" required>
-                                  {% for reponse in reponses %}
-                                    {% if reponse[3] == question[0] and section[0] == question[2] %}
-                                      <option value="{{reponse[2]}}">{{reponse[1]}}</option>
-                                    {% endif %}
-                                  {% endfor %}
-                                </select>
-                            </div>
-
-                          {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                  {% endfor %}
-
-                  <button type="submit">Envoyer</button>
-                </form>
-              </div>
-              <!--end formulaire-->
+                        </div>
+                    </div>                    
+                    <div class="card ">
+                        <div class="card-header">
+                            <h3>L'année universitaire</h3>
+                        </div>
+                        <div class="card-body">
+                            <a href="{{url_for('ajouter_section')}}">Voir et ajouter des sections</a>
+                        </div>
+                    </div>
+                </div>
+                <!--end parametres-->
             </div>
-            <!-- end page category -->
+            <!--end page category-->
           </div>
         </div>
     

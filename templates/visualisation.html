@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>index</title>
+    <title>Visualisation</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="{{ url_for('static', filename = '') }}  assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style_visualisation.css') }}" >
@@ -81,6 +81,12 @@
                 </a>
               </li>
               <li class="nav-item ">
+                <a href="{{ url_for('parametres') }}" class="collapsed" >
+                  <i class="fas fa-cogs"></i>
+                  <p>Paramètres</p>
+                </a>
+              </li>
+              <li class="nav-item ">
                 <a href="{{ url_for('logout_admin') }}" class="collapsed" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                   <i class="fas fa-sign-out-alt"></i>
                   <p>logout</p>
@@ -144,6 +150,7 @@
                     </tr>
                     {% for row in evaluation_data %}
                     <tr>
+                        
                         <td>{{ row[0] }}</td>
                         <td>{{ row[1] }}</td>
                     </tr>

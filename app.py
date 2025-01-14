@@ -362,36 +362,44 @@ def insert_formulaire(cours_code):
         if request.method == "POST":
             matricule = session['user_id']
             
-            # Initialize a list to store the ratings or responses for each question
             notes = []
+            commentaires = []
             
-            # Loop through the submitted form data to get the responses for each question
             for key, value in request.form.items():
                 if key.startswith("question_"):
-                    question_id = key.split("_")[1] 
-                    notes.append(value) 
-            
-            # Calculate the final evaluation score (average of all ratings)
+                    notes.append(value)
+                    
+                elif key.startswith("commentaire_"):
+                    commentaire_text = value 
+                    cur = mysql.connection.cursor()
+                    cur.execute("INSERT INTO commentaire (lib_commentaire) VALUES (%s)", (commentaire_text,))
+                    mysql.connection.commit()
+
+                    cur.execute("SELECT LAST_INSERT_ID()")
+                    id_commentaire = cur.fetchone()[0]
+                    
+                    commentaires.append(id_commentaire)
+
             somme = sum([int(i) for i in notes])
             note_final = somme / len(notes) if len(notes) > 0 else 0
-
-            cur = mysql.connection.cursor()
-            cur.execute("""
-                INSERT INTO evaluer (evaluation, matricule, cours_code) 
-                VALUES (%s, %s, %s)
-            """, (note_final, matricule, cours_code))
-            mysql.connection.commit()
+            print(f"Final Score: {note_final}")
+            print(f"Commentaire : {commentaires}")
             
-            cur.close()
-            return redirect(url_for('index')) 
-        else:
-            return redirect(url_for('login')) 
-    return redirect(url_for('login'))  
+            cur.execute("""
+                INSERT INTO evaluer (evaluation, matricule, cours_code, id_commentaire) 
+                VALUES (%s, %s, %s, %s)
+            """, (note_final, matricule, cours_code, commentaires[0])) 
+            mysql.connection.commit()
 
+            cur.close()
+            return redirect(url_for('index'))
+        else:
+            return redirect(url_for('login'))
+    return redirect(url_for('login'))
     
 
 
-# ADMIN routes 
+### ADMIN ROUTES ###
 @app.route("/visualisation")
 def visualisation ():
     if admin_logged_in():
@@ -781,6 +789,12 @@ def envoyer_formulaire():
         
 
     return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info)
+
+
+
+@app.route("/parametres")
+def parametres():
+    return render_template("parametres.html")
 
 
 if __name__ == "__main__":

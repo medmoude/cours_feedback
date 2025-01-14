@@ -80,15 +80,24 @@ FOREIGN KEY (code_sem) REFERENCES semestre(code_sem)
 );
 
 CREATE TABLE evaluer (
-evaluation INT NOT NULL,
-commentaire TEXT ,
+evaluation INT NOT NULL, 
 matricule INT NOT NULL ,
 cours_code VARCHAR(50) NOT NULL,
 PRIMARY KEY(matricule, cours_code),
 FOREIGN KEY(matricule) REFERENCES etudiants(matricule),
 FOREIGN KEY(cours_code) REFERENCES cours(cours_code)
-
 );
+
+CREATE TABLE commentaire (
+id_commentaire INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+lib_commentaire TEXT,
+date_commentaire TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+matricule INT NOT NULL,
+cours_code VARCHAR(50) NOT NULL,
+FOREIGN KEY(matricule) REFERENCES evaluer(matricule),
+FOREIGN KEY(cours_code) REFERENCES evaluer(cours_code)
+);
+
 
 #Insertion des données 
 INSERT INTO niveau (intitulé_niv) VALUES
@@ -199,7 +208,6 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ;
 
 
-
 #select from all tables (show the data)
 SELECT * FROM niveau;
 SELECT * FROM departement;
@@ -211,7 +219,7 @@ SELECT * FROM images;
 SELECT * FROM section;
 SELECT * FROM question;
 SELECT * FROM reponse;
-
+SELECT * FROM commentaire;
 SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC;
 
 
