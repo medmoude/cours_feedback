@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anneé universitaire</title>
+    <!--bootsrap CSS-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container d-flex justify-content-center align-items-center mt-5">
+        <div class="card shadow mt-4" style="width: 40rem;">
+            <div class="card-header bg-primary text-white mb-0">
+                <h3>Les années universitaires</h3>
+            </div>
+            <div class="card-body">
+                <form action="{{url_for('annee_univ')}}" method="post" >
+                    <h6>Choisissez l'année avec laquelle vous souhaitez travailler.</h6>
+                    <div class="form-group">
+                        <select class="form-control" name="annee_univ" onchange="this.form.submit()">
+                            <option selected disabled>Sélectionnez une année</option>
+                            {% for annee in annees %}
+                            <option value="{{annee[0]}}">{{annee[0]}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" value="{{email}}">
+                </form>
+                <p class="mb-0 mt-5"> Créer une nouvelle année universitaire</p> 
+                <form action="" method="post" class="d-flex mt-0"> 
+                    <input type="text" class="form-control me-2" placeholder="Nouvelle année universitaire (e.g, 2030-2031)" required>
+                    <input type="hidden" value="{{email}}">
+                    <button type="submit" class="btn btn-warning">Créer</button>
+                </form>
+            </div>
+        </div>
+    </div> 
+</body>
+</html>

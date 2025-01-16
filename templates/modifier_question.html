@@ -153,7 +153,7 @@
                             <form method="POST" action="{{url_for('modifier_question', question_id = question[0])}}">
                                 <!-- Section -->
                                 <div class="form-group mb-0">
-                                    <label for="section">Choisir une section: {{responses}} </label>
+                                    <label for="section">Choisir une section: </label>
                                     <select id="section" name="section" class="form-control" required>
                                         
                                         {% for section in sections %}

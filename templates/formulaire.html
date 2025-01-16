@@ -155,43 +155,51 @@
                             {% elif question[3] == 'radio' %}
                               <div class="question">
                                   <p>{{ question[1] }}</p> 
-                  
+                                  {% set counter = [] %}
+
                                   {% for reponse in reponses %}
                                       {% if reponse[3] == question[0] and section[0] == question[2] %}
                                           <label>
                                               <input type="radio" name="question_{{question[0]}}" value="{{reponse[2]}}" required>
-                                              {{ reponse[1] }}
+                                              {{ reponse[1] }} 
                                           </label>
+                                          {% set __ = counter.append(reponse[2] | int) %}
                                       {% endif %}
                                   {% endfor %}
+                                  <input type="hidden" name="some_ponderation_{{question[0]}}" value="{{ counter | sum }}">
                               </div>
                             <!--checkbox-->
                             {% elif question[3] == 'checkbox' %}
-                            <div class="question" >
-                                <p>{{ question[1] }}</p> 
-                
-                                {% for reponse in reponses %}
-                                    {% if reponse[3] == question[0] and section[0] == question[2] %}
-                                        <label>
-                                            <input type="checkbox" name="question_{{question[0]}}" value="{{reponse[2]}}" >
-                                            {{ reponse[1] }}
-                                        </label>
-                                    {% endif %}
-                                {% endfor %}
+                            <div class="question">
+                              <p>{{ question[1] }}</p> 
+                              {% set counter = [] %}
+
+                              {% for reponse in reponses %}
+                                  {% if reponse[3] == question[0] and section[0] == question[2] %}
+                                      <label required>
+                                          <input type="checkbox" name="question_{{question[0]}}" value="{{reponse[2]}}">
+                                          {{ reponse[1] }} 
+                                      </label>
+                                      {% set __ = counter.append(reponse[2] | int) %}
+                                  {% endif %}
+                              {% endfor %}
+                              <input type="hidden" name="some_ponderation_{{question[0]}}" value="{{ counter | sum }}">
                             </div>
                             <!--select -->
                             {% elif question[3] == 'select' %}
-                            <div class="question"> 
-                                <label for="">{{question[1]}} </label> <br>
-                                <select name="question_{{question[0]}}" required>
-                                  {% for reponse in reponses %}
-                                    {% if reponse[3] == question[0] and section[0] == question[2] %}
-                                      <option value="{{reponse[2]}}">{{reponse[1]}}</option>
-                                    {% endif %}
-                                  {% endfor %}
-                                </select>
+                            <div class="question">
+                              <p>{{ question[1] }}</p> 
+                              {% set counter = [] %}
+                              <select name="question_{{question[0]}}">
+                                {% for reponse in reponses %}
+                                  {% if reponse[3] == question[0] and section[0] == question[2] %}
+                                      <option type="radio"  value="{{reponse[2]}}" >{{ reponse[1] }} </option>
+                                      {% set __ = counter.append(reponse[2] | int) %}
+                                  {% endif %}
+                                {% endfor %}
+                              </select>
+                              <input type="hidden" name="some_ponderation_{{ question[0] }}" value="{{ counter | sum }}">
                             </div>
-
                           {% endif %}
                         {% endif %}
                     {% endfor %}

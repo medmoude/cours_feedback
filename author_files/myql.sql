@@ -22,9 +22,11 @@ FOREIGN KEY (code_niv) REFERENCES niveau(code_niv)
 );
 
 CREATE TABLE annee_universitaire (
-id_annee_univ INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_annee_univ VARCHAR(50) NOT NULL UNIQUE
-) AUTO_INCREMENT = 2024 ; 
+id_annee_univ INT NOT NULL,
+lib_annee_univ VARCHAR(50) NOT NULL UNIQUE,
+seuil_annee_univ INT DEFAULT 70,
+status_annee_univ ENUM ('actif', 'archivé') NOT NULL
+); 
 
 CREATE TABLE etudiants (
 matricule INT NOT NULL ,
@@ -83,6 +85,7 @@ CREATE TABLE evaluer (
 evaluation INT NOT NULL, 
 matricule INT NOT NULL ,
 cours_code VARCHAR(50) NOT NULL,
+date_evaluation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY(matricule, cours_code),
 FOREIGN KEY(matricule) REFERENCES etudiants(matricule),
 FOREIGN KEY(cours_code) REFERENCES cours(cours_code)

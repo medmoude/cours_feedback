@@ -41,23 +41,10 @@ def user_logged_in():
     return 'user_id' in session
 
 def admin_logged_in():
-    return 'admin_id' in session
+    return 'admin_id' in session and 'actuel_annee_univ' in session
 
 
-#obtenir annee universitaire 
-def obtenir_annee_universitaire_en_cours():
-    date_actuelle = datetime.now()
 
-    annee_actuelle = date_actuelle.year
-    mois_actuel = date_actuelle.month
-
-    if mois_actuel >= 10:  # De Septembre à Décembre
-        annee_universitaire = f"{annee_actuelle}-{annee_actuelle + 1}"
-
-    else:  # De Janvier à Août
-        annee_universitaire = f"{annee_actuelle - 1}-{annee_actuelle}"
-
-    return annee_universitaire
 
 #generate a random password
 def generate_password(length=8):
@@ -183,9 +170,10 @@ def login():
             return render_template("login.html")
         
         if email == "admin" and mot_de_pass == "admin":
-            session['admin_id'] = 'admin'
-            session['annee_univ'] = obtenir_annee_universitaire_en_cours()
-            return redirect(url_for('visualisation'))
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+            annees = cur.fetchall()
+            return render_template('promp_annee_univ.html', annees = annees, email = email)
 
         # Verify if the email of the user exists
         cur = mysql.connection.cursor()
@@ -198,7 +186,7 @@ def login():
             if mot_de_pass == user[3]:
                 session["user_id"] = user[0]  # Store matricule (user_id) in session
                 session["user_nom_prenom"] = user[1]
-                session["annee_univ"] = obtenir_annee_universitaire_en_cours()
+                session["annee_univ"] = session['annee_univ']
                 return redirect(url_for("index"))
             else:
                 flash('le mot de passe est incorrecte','error')
@@ -288,6 +276,7 @@ def profile(user_id):
 
     return redirect(url_for('login'))
 
+
 @app.route('/ajouter_image', methods=['GET', 'POST'])
 def ajouter_image():
     if user_logged_in():
@@ -362,44 +351,81 @@ def insert_formulaire(cours_code):
         if request.method == "POST":
             matricule = session['user_id']
             
-            notes = []
-            commentaires = []
+            notes = []  # Store the answers' values
+            ponderations = []  # Store the ponderation values (sum of ponderation)
+            percentages = []  # Store the calculated percentages for each question
+            commentaires = []  # Store comments
             
+            # Loop through the form data
             for key, value in request.form.items():
                 if key.startswith("question_"):
-                    notes.append(value)
+                    # Extract question ID from the key (e.g., "question_1")
+                    question_id = key.split('_')[1]
+                    score = int(value)  # User's selected value for the question
                     
+                    # Find the hidden ponderation value for this question (e.g., "some_ponderation_1")
+                    ponderation_key = f"some_ponderation_{question_id}"
+                    ponderation_value = int(request.form.get(ponderation_key, 0))  # Default to 0 if not found
+                    
+                    # Calculate the percentage for this question (score / ponderation * 100)
+                    if ponderation_value > 0:
+                        percentage = (score / ponderation_value) * 100
+                    else:
+                        percentage = 0
+                    
+                    notes.append(score)
+                    ponderations.append(ponderation_value)
+                    percentages.append(percentage)
+                    print(f"{key}: Score = {score}, Ponderation = {ponderation_value}, Percentage = {percentage}%")
+                
                 elif key.startswith("commentaire_"):
-                    commentaire_text = value 
-                    cur = mysql.connection.cursor()
-                    cur.execute("INSERT INTO commentaire (lib_commentaire) VALUES (%s)", (commentaire_text,))
-                    mysql.connection.commit()
-
-                    cur.execute("SELECT LAST_INSERT_ID()")
-                    id_commentaire = cur.fetchone()[0]
-                    
-                    commentaires.append(id_commentaire)
-
-            somme = sum([int(i) for i in notes])
-            note_final = somme / len(notes) if len(notes) > 0 else 0
-            print(f"Final Score: {note_final}")
-            print(f"Commentaire : {commentaires}")
+                    # Store comments
+                    commentaire_text = value
+                    commentaires.append(commentaire_text)
+            print(notes) 
+            print(ponderations)
+            # Calculate the total score and total ponderation
+            total_score = sum(notes)
+            total_ponderation = sum(ponderations)
             
+            # Calculate the total percentage based on the sum of scores and ponderations
+            if total_ponderation > 0:
+                total_percentage = (total_score / total_ponderation) * 100
+            else:
+                total_percentage = 0
+
+            
+            print(f"Final Score: {total_score}, Final Ponderation: {total_ponderation}, Final Percentage: {total_percentage}%")
+            print(f"Commentaires: {commentaires}")
+            
+            # Insert the final percentage into the `evaluer` table
+            cur = mysql.connection.cursor()
             cur.execute("""
-                INSERT INTO evaluer (evaluation, matricule, cours_code, id_commentaire) 
-                VALUES (%s, %s, %s, %s)
-            """, (note_final, matricule, cours_code, commentaires[0])) 
+                INSERT INTO evaluer (evaluation, matricule, cours_code) 
+                VALUES (%s, %s, %s)
+            """, (total_percentage, matricule, cours_code)) 
+            mysql.connection.commit()
+
+            # Insert the comments into the `commentaire` table
+            for commentaire in commentaires:
+                cur.execute("""
+                    INSERT INTO commentaire (lib_commentaire, matricule, cours_code)
+                    VALUES (%s, %s, %s) 
+                """, (commentaire, matricule, cours_code))
             mysql.connection.commit()
 
             cur.close()
-            return redirect(url_for('index'))
+
+            return redirect(url_for('index'))  # Redirect to the index page after form submission
         else:
             return redirect(url_for('login'))
     return redirect(url_for('login'))
+
     
 
-
-### ADMIN ROUTES ###
+######################################
+       ### ADMIN ROUTES ###
+######################################
 @app.route("/visualisation")
 def visualisation ():
     if admin_logged_in():
@@ -423,7 +449,7 @@ def chart_data():
         cur = mysql.connection.cursor()
 
         cur.execute("""
-            SELECT c.intitulé_cours, AVG(ev.evaluation) AS average_score
+            SELECT c.intitulé_cours, ROUND(AVG(ev.evaluation), 0) AS pourcentage
             FROM evaluer ev
             JOIN cours c ON ev.cours_code = c.cours_code
             GROUP BY c.intitulé_cours
@@ -453,8 +479,6 @@ def questionnaire():
 def ajouter_question():
     if admin_logged_in():
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM section ")
-        sections = cur.fetchall()
 
         if request.method == "POST":
             # Fetch the main question, its section ID, and type
@@ -463,17 +487,19 @@ def ajouter_question():
             section_id = request.form['section']
 
             # Determine if responses are required based on question type
-            reponse_required = True if type_question != 'textarea' else False
+            response_required = True if type_question != 'textarea' else False
 
             # Insert the question into the database
             cur.execute("INSERT INTO question (lib_question, id_section, type_question, reponse_required) VALUES (%s, %s, %s, %s)", 
-                        (question, section_id, type_question, reponse_required))
+                        (question, section_id, type_question, response_required))
             mysql.connection.commit()
             question_id = cur.lastrowid
 
             # If responses are required (not a textarea), insert them
-            if reponse_required:
+            if response_required:
                 responses = []
+                some_pond_question = []
+                
                 for key, value in request.form.items():
                     if key.startswith('reponse-'):
                         response = request.form[key]
@@ -605,7 +631,7 @@ def ajouter_section():
             #don't allow the admin to add an existing section
             if new_section not in sections_list:
                 cur.execute("INSERT INTO section (lib_section, lib_annee_univ) VALUES (%s, %s)",
-                            (new_section, obtenir_annee_universitaire_en_cours() ))
+                            (new_section, session ))
                 mysql.connection.commit()
                 cur.close()
                 return redirect(url_for('ajouter_section'))
@@ -653,7 +679,6 @@ def modifier_section(id_section):
     return render_template('modifier_section_informations.html', id_section=id_section)
 
 
-
 @app.route('/supprimer_section/<id_section>')
 def supprimer_section(id_section):
     cur = mysql.connection.cursor()
@@ -667,15 +692,6 @@ def supprimer_section(id_section):
 def ajouter_promotion():
     if admin_logged_in():
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM annee_universitaire ORDER BY id_annee_univ ASC;")
-        annees = cur.fetchall()
-
-        # If the form is submitted via the 'select' dropdown
-        if request.method == 'POST' and request.form.get('type-form') == 'select':
-            session['annee_univ'] = request.form['annee_univ']
-            return redirect(url_for('ajouter_promotion')) 
-
-        # Check if 'annee_univ' is in session
         if 'annee_univ' in session:
             query = """
                     SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
@@ -688,25 +704,12 @@ def ajouter_promotion():
             cur.execute(query, (session['annee_univ'],))
             etudiants = cur.fetchall()
             
-
-        else:
-            query = """
-                    SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
-                    FROM etudiants 
-                    JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
-                    JOIN annee_universitaire ON etudiants.lib_annee_univ = annee_universitaire.lib_annee_univ
-                    WHERE etudiants.lib_annee_univ = %s
-                    ORDER BY code_dep ASC;
-                    """
-            cur.execute(query,(obtenir_annee_universitaire_en_cours(),))
-            etudiants = cur.fetchall()
-            
         cur.close()
 
         
 
         # If the form is submitted with the file (from file-form)
-        if request.method == 'POST' and request.form.get('type-form') == 'file-upload':
+        if request.method == 'POST' :
             if 'promotion-file' not in request.files:
                 flash('Aucun fichier trouvé', 'error')
                 return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
@@ -725,20 +728,16 @@ def ajouter_promotion():
                     return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
 
                 for sheet_name, df in promotion_data.items():
-                    required_columns = ['matricule', 'nom_prenom', 'email', 'intitulé_dep', 'lib_annee_univ']
+                    required_columns = ['matricule', 'nom_prenom', 'email', 'intitulé_dep']
                     if not all(col in df.columns for col in required_columns):
                         flash('Le fichier Excel est manquant de certaines colonnes obligatoires', 'error')
                         return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
-
-                    #extract the annee_univ from the excel file 
-                    lib_annee_univ_from_excel = df['lib_annee_univ'].iloc[0] 
-                    session['annee_univ'] = lib_annee_univ_from_excel
                     
                     cur = mysql.connection.cursor()
                     cur.execute("SELECT * from annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
                     annee = cur.fetchone()
                     if not annee :
-                        cur.execute("INSERT INTO annee_universitaire (lib_annee_univ) VALUES (%s)", (lib_annee_univ_from_excel,))
+                        cur.execute("INSERT INTO annee_universitaire (lib_annee_univ) VALUES (%s)", (session['annee_univ'],))
                         mysql.connection.commit()
 
                     cur.close()
@@ -769,7 +768,7 @@ def ajouter_promotion():
             else:
                 flash('Seuls les fichiers Excel sont acceptables', 'error')
 
-        return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+        return render_template('ajouter_promotion.html', etudiants=etudiants)
 
     return redirect(url_for('login'))
 
@@ -794,7 +793,57 @@ def envoyer_formulaire():
 
 @app.route("/parametres")
 def parametres():
-    return render_template("parametres.html")
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT lib_annee_univ, seuil_annee_univ FROM annee_universitaire")
+    annees = cur.fetchall()
+    cur.close()
+    return render_template("parametres.html", seuils = annees[0], annees = annees)
+
+
+@app.route("/annee_univ", methods = ['POST', 'GET'])
+def annee_univ():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM ")
+    if request.method == 'POST':
+        annee_univ = request.form['annee_univ']
+        session['actuel_annee_univ'] = annee_univ
+        session['admin_id'] = 'admin'
+        return redirect(url_for('visualisation'))
+
+
+@app.route("/creer_annee_univ")
+def creer_annee_univ():
+    cur = mysql.connection.cursor()
+    cur.execute("")
+
+
+@app.route("/modifier_annee_univ_info/<int:id_annee_univ>")
+def modifier_annee_univ_info(id_annee_univ):
+    return "modifier"
+
+
+@app.route("/modifier_annee_univ/<int:id_annee_univ>")
+def modifier_annee_univ(id_annee_univ):
+    return "m"
+
+
+@app.route("/supprimer_annee_univ/<int:id_annee_univ>")
+def supprimer_annee_univ(id_annee_univ):
+    return "dk"
+
+@app.route("/modifier_seuil", methods = ['POST', 'GET'])
+def modifier_seuil ():
+    cur = mysql.connection.cursor()
+
+    if request.method == 'POST':
+        seuil = request.form['seuil']
+        cur.execute("UPDATE annee_universitaire SET seuil_annee_univ =%s",(seuil,))
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('parametres'))
+
+    
+
 
 
 if __name__ == "__main__":
