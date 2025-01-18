@@ -26,6 +26,8 @@ p:has(strong#timer){
 
 .cours-table th {
     padding: 12px;
+    color: #333333;
+    
 }
 
 .cours-table tbody tr {
@@ -62,6 +64,7 @@ p:has(strong#timer){
     font-weight: bold;
     border-radius: 5px;
     padding: 5px;
+    border: 1px solid #333333
 }
 
 .button_remplire a {
@@ -71,6 +74,14 @@ p:has(strong#timer){
 
 .button_remplire :hover{
     color: green;
+}
+
+button.disabled {
+    pointer-events: none;
+    background-color: rgb(61, 175, 61);
+    color: white;
+    width: 100%;
+    border: 1px solid #ffffff
 }
 
 h2{
@@ -147,7 +158,7 @@ border-radius: 10px;
 
 .info-item strong {
     font-weight: bold;
-    color: #156318;
+    color: #333333;
 }
 
 .info-item span {
@@ -228,11 +239,4 @@ border-radius: 10px;
     text-align: center;
     list-style-type:none;
     margin-left : -40px;
-}
-
-button.disabled {
-    pointer-events: none;
-    background-color: darkgreen;
-    color: white;
-    width: 100%;
 }

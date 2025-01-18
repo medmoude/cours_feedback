@@ -142,55 +142,73 @@
                 </li>
               </ul>
             </div>
+            <!--annee universitaire-->
+            <div class="admin-annee">
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+              <a href="{{url_for('parametres')}}">
+                <i class="fas fa-external-link-alt" style="color:#333333"></i>
+              </a>
+            </div>
+            <!--page category-->
             <div class="page-category">
-                <!-- envoyer formulaire -->
-                 <div class="container mt-5">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0">Envoyer la formulaire</h4>
-                        </div>
-                        <div class="card-body">
-                            <form method="post" action="{{url_for('envoyer_formulaire')}}">
-                                <h5 class="mb-3">Sélectionnez le département auquel vous souhaitez envoyer le formulaire </h5>
-                                <div class="form-group">
-                                    <label for="tous_departement">
-                                        <input type="checkbox" name="tous_departement" id="tous_departement">
-                                        Selectionner tous
-                                    </label> <br/>
-                                    {% for departement in departements %}
-                                        <label for="departement_{{loop.index}}" class="me-4">
-                                            <input type="checkbox" name="departement" id="departement_{{loop.index}}" value="{{departement[1]}}">
-                                            {{departement[1]}}
-                                        </label>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3">
-                                    <input type="submit" value="Envoyer" class="btn btn-primary" >
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <h4></h4>
-                    {% if etudiants_info %}
-                    <div class="table mt-5">
-                        <table>
-                            <tr>
-                                <th>email</th>
-                                <th>mot de pass </th>
-                                <th>departement</th>
-                            </tr>
-                            {% for info in etudiants_info %}
-                            <tr>
-                                <td>{{info[0]}}</td>
-                                <td>{{info[1]}}</td>
-                                <td>{{info[2]}}</td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% endif %}
-                 </div>
-                <!--end envoyer formulaire-->
+
+              {% with messages = get_flashed_messages (with_categories = true) %}
+                {% if messages %}
+                  <ul id="flashed-messages">
+                    {% for category, message in messages %}
+                      <li class="{{category}}"> {{message}} </li>
+                    {% endfor%}
+                  </ul>
+                {% endif %}
+              {% endwith %}
+              <!-- envoyer formulaire -->
+                <div class="container mt-5">
+                  <div class="card shadow">
+                      <div class="card-header bg-primary text-white">
+                          <h4 class="mb-0">Envoyer la formulaire</h4>
+                      </div>
+                      <div class="card-body">
+                          <form method="post" action="{{url_for('envoyer_formulaire')}}">
+                              <h5 class="mb-3">Sélectionnez le département auquel vous souhaitez envoyer le formulaire </h5>
+                              <div class="form-group">
+                                  <label for="tous_departement">
+                                      <input type="checkbox" name="tous_departement" id="tous_departement">
+                                      Selectionner tous
+                                  </label> <br/>
+                                  {% for departement in departements %}
+                                      <label for="departement_{{loop.index}}" class="me-4">
+                                          <input type="checkbox" name="departement" id="departement_{{loop.index}}" value="{{departement[1]}}">
+                                          {{departement[1]}}
+                                      </label>
+                                  {% endfor %}
+                              </div>
+                              <div class="mt-3">
+                                  <input type="submit" value="Envoyer" class="btn btn-primary" >
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+                  <h4></h4>
+                  {% if etudiants_info %}
+                  <div class="table mt-5">
+                      <table>
+                          <tr>
+                              <th>email</th>
+                              <th>mot de pass </th>
+                              <th>departement</th>
+                          </tr>
+                          {% for info in etudiants_info %}
+                          <tr>
+                              <td>{{info[0]}}</td>
+                              <td>{{info[1]}}</td>
+                              <td>{{info[2]}}</td>
+                          </tr>
+                          {% endfor %}
+                      </table>
+                  </div>
+                  {% endif %}
+                </div>
+              <!--end envoyer formulaire-->
             </div>
             <!--end page category-->
           </div>

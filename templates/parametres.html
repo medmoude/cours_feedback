@@ -123,10 +123,10 @@
             <!-- End Logo Header -->
           </div>
         </div>
-    
+
         <div class="container">
           <div class="page-inner" >
-            <div class="page-header">
+            <div class="page-header" style="position: relative;">
               <h4 class="page-title">Paramètres</h4>
               <ul class="breadcrumbs">
                 <li class="nav-home">
@@ -142,41 +142,155 @@
                 </li>
               </ul>
             </div>
-            <div class="page-category">
+            <!--annee universitaire-->
+            <div class="admin-annee" >
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+            </div>
+            <!--page category-->
+            <div class="page-category" style="position: relative;">
+                <form action="{{url_for('changer_annee_univ')}}" method="post" style="position: relative">
+                  <select name="annee" onchange="this.form.submit()" style="position: absolute; right: 35px;">
+                    {% for annee in session['annees_univs'] %}
+                      <option value="{{annee[0]}}" {% if annee[0] == session['annee_univ'] %} selected {% endif %}>
+                        {{annee[0]}}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </form>                
+
+                {% with messages = get_flashed_messages (with_categories = true) %}
+                    {% if messages %}
+                        <ul id="flashed-messages">
+                            {% for category, message in messages %}
+                            <li class="{{category}}"> {{message}} </li>
+                            {% endfor%}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
                 <!-- paramètres -->
+                <!--les annees universitaires-->
                 <div class="container mb-0">
-                    <div class="card ">
-                        <div class="card-header">
-                            <h3>Les années universitaires</h3>
-                        </div>
+
+                    {% if annees %}
+                    <legend class="mb-4">Les années universitaires</legend>
+                    <table class="table table-bordered table-striped table-hover" style="width: 100%; border-radius: 8px;">
+                        <thead>
+                            <tr>
+                                <th scope="col">Année universitaire</th>
+                                <th scope="col">Seuil</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for annee in annees %}
+                                <tr>
+                                    <td>{{ annee[1] }}</td>
+                                    <td>{{ annee[2] }}%</td>
+                                    <td>
+                                      <form action="/archiver_ou_unarchiver_anne_univ/{{annee[0]}}" method="post">
+                                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                          <option value="archivée" {% if annee[3] == 'Archivée' %} selected {% endif %}>Archivée</option>
+                                          <option value="actif" {% if annee[3] == 'Actif' %} selected {% endif %}>Actif</option>
+                                        </select>
+                                      </form>
+
+                                    </td>
+                                    <td class="text-center">
+                                      {% if annee[3] == 'Actif' %}
+                                          <a href="/modifier_annee_univ_info/{{annee[0]}}" class="btn btn-warning btn-sm">Modifier</a>
+                                          <a href="/supprimer_annee_univ/{{annee[0]}}" class="btn btn-danger btn-sm" onclick="return confirm('Attention : Suppression d\'une année = perte des données')">Supprimer</a>
+                                      {% else %}
+                                          <a href="#" class="btn btn-warning btn-sm" style="pointer-events: none; opacity: 0.3;">Modifier</a>
+                                          <a href="#" class="btn btn-danger btn-sm" style="pointer-events: none; opacity: 0.3;">Supprimer</a>
+                                      {% endif %}
+                                  </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                    <div class="card shadow d-flex ">
                         <div class="card-body">
-                            <a href="{{url_for('ajouter_section')}}">Voir et ajouter des sections</a>
-                        </div>
-                    </div>                    
-                    <form method="post" action="{{url_for('modifier_seuil')}}">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Le seuil : {{seuils[1]}}%</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="seuil" value="{{seuils[1]}}">
-                                    <div class="input-group-append">
-                                        <input type="submit" class="btn btn-warning ms-2" value="Modifier">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    <div class="card ">
-                        <div class="card-header">
-                            <h3>Les sections</h3>
-                        </div>
-                        <div class="card-body">
-                            <a href="{{url_for('ajouter_section')}}">Voir et ajouter des sections</a>
+                            <p>Nouvelle année universitaire</p>
+                            <form action="{{url_for('creer_annee_univ')}}" method="post" style="width:100%">
+                                <input type="text" name="nouvelle_annee" class="form-group" placeholder="Année universitaire" >
+                                <input type="number" min="0" name="seuil" class="form-group" placeholder="seuil" >
+                                <input type="submit" class="btn btn-warning" value="Ajouter">
+                            </form>
                         </div>
                     </div>
                 </div>
+                <!--les sections-->              
+                <b class="ms-2"> <p>Les sections</p> </b>
+                <div class="container mt-0">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h4 class="mb-0">Liste des sections</h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- List of Sections -->
+                            {% if sections %}
+                                <ul class="list-group mb-5">
+                                    {% for section in sections %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center ">
+                                            {{ section[1] }}
+                                            <div class="d-flex">
+                                              {% if annee[3] == 'Actif' %}
+                                                <a href="{{ url_for('modifier_section_informations', id_section = section[0] ) }}" class="btn btn-warning btn-sm ">
+                                                    Modifier
+                                                </a>
+                                                <a href="{{ url_for('supprimer_section', id_section = section[0] ) }}" class="btn btn-danger btn-sm ms-2" onclick="return confirm('Toutes les questions et réponses dans cette section seront supprimées.');">
+                                                    Supprimer
+                                                </a>
+                                              {% else %}
+                                                <a href="#" class="btn btn-warning btn-sm " style="opacity: 0.5; pointer-events: none">
+                                                  Modifier
+                                                </a>
+                                                <a href="#" class="btn btn-danger btn-sm ms-2" style="opacity: 0.5; pointer-events: none">
+                                                    Supprimer
+                                                </a>
+                                              {% endif %}
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted mb-4">Aucune section disponible pour cette année.</p>
+                            {% endif %}
+            
+                            <!-- Add New Section Form -->
+                            <form method="POST" action="{{ url_for('ajouter_section') }}" class=" mt-2 mb-0">
+                                <p>Nouvelle section</p>
+                                <div class="input-group">
+                                  {% if annee[3] == 'Actif' %}
+                                    <input type="text" name="new_section" class="form-control" placeholder="Nom de la nouvelle section" required>
+                                    <button type="submit" class="btn btn-primary ">Ajouter</button>
+                                  {% else %}
+                                    <input type="text" name="new_section" class="form-control" placeholder="Nom de la nouvelle section" disabled>
+                                    <button type="submit" class="btn btn-primary " style="opacity: 0.5; pointer-events: none;" disabled>Ajouter</button>
+                                  {% endif %}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Le miniteur-->
+                <div class="container mt-2">
+                  <div class="card shadow">
+                    <div class="card-header ">
+                      <h4>Le miniteurr</h4>
+                    </div>
+                    <div class="card-body">
+                      <form class=" d-flex text-center ">
+                        <input type="number" placeholder="durée en heure" >
+                        <input type="submit" value="Démarrer" class="btn btn-secondary">
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
                 <!--end parametres-->
             </div>
             <!--end page category-->

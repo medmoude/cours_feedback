@@ -21,93 +21,100 @@ code_niv INT NOT NULL,
 FOREIGN KEY (code_niv) REFERENCES niveau(code_niv)
 );
 
+CREATE TABLE cours (
+    cours_code VARCHAR(10) NOT NULL PRIMARY KEY,
+    intitulé_cours VARCHAR(255) NOT NULL,
+    code_sem INT NOT NULL,
+    FOREIGN KEY (code_sem) REFERENCES semestre(code_sem) 
+);
+
 CREATE TABLE annee_universitaire (
-id_annee_univ INT NOT NULL,
-lib_annee_univ VARCHAR(50) NOT NULL UNIQUE,
-seuil_annee_univ INT DEFAULT 70,
-status_annee_univ ENUM ('actif', 'archivé') NOT NULL
-); 
+    id_annee_univ INT NOT NULL PRIMARY KEY,
+    lib_annee_univ VARCHAR(50) NOT NULL UNIQUE,
+    seuil_annee_univ INT DEFAULT 70,
+    status_annee_univ ENUM ('Actif', 'Archivée') NOT NULL
+);
 
 CREATE TABLE etudiants (
-matricule INT NOT NULL ,
-nom_prenom VARCHAR (255) NOT NULL,
-email VARCHAR (100) NOT NULL,
-mot_de_pass VARCHAR(255) NOT NULL DEFAULT '1234',
-intitulé_dep VARCHAR(255) NOT NULL,
-lib_annee_univ VARCHAR(100) NOT NULL,
-PRIMARY KEY(matricule, lib_annee_univ),
-FOREIGN KEY (intitulé_dep) REFERENCES departement(intitulé_dep),
-FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ)
+    matricule INT NOT NULL,
+    nom_prenom VARCHAR (255) NOT NULL,
+    email VARCHAR (100) NOT NULL,
+    mot_de_pass VARCHAR(255) NOT NULL DEFAULT '1234',
+    intitulé_dep VARCHAR(255) NOT NULL,
+    lib_annee_univ VARCHAR(100) NOT NULL,
+    PRIMARY KEY(matricule, lib_annee_univ),
+    FOREIGN KEY (intitulé_dep) REFERENCES departement(intitulé_dep) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE section (
-id_section INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_section VARCHAR(100) NOT NULL,
-lib_annee_univ VARCHAR(100) NOT NULL,
-FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ)
+    id_section INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    lib_section VARCHAR(100) NOT NULL,
+    lib_annee_univ VARCHAR(100) NOT NULL,
+    FOREIGN KEY (lib_annee_univ) REFERENCES annee_universitaire(lib_annee_univ) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE question (
-id_question INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_question VARCHAR(255) NOT NULL,
-id_section INT NOT NULL,
-type_question VARCHAR(100) NOT NULL,
-reponse_required BOOLEAN DEFAULT TRUE,
-FOREIGN KEY (id_section) REFERENCES section(id_section)
+    id_question INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    lib_question VARCHAR(255) NOT NULL,
+    id_section INT NOT NULL,
+    type_question VARCHAR(100) NOT NULL,
+    reponse_required BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_section) REFERENCES section(id_section) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE reponse (
-id_reponse INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_reponse VARCHAR(255) NOT NULL,
-poids_reponse INT NOT NULL,
-id_question INT NOT NULL,
-FOREIGN KEY (id_question) REFERENCES question(id_question)
+    id_reponse INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    lib_reponse VARCHAR(255) NOT NULL,
+    poids_reponse INT NOT NULL,
+    id_question INT NOT NULL,
+    FOREIGN KEY (id_question) REFERENCES question(id_question) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
 
 CREATE TABLE images (
-id_image INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-nom_image VARCHAR(255) NOT NULL,
-chemin_image VARCHAR(255) NOT NULL,
-date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-matricule INT NOT NULL,
-FOREIGN KEY (matricule) REFERENCES etudiants(matricule)
-);
-
-CREATE TABLE cours (
-cours_code VARCHAR(10) NOT NULL PRIMARY KEY,
-intitulé_cours VARCHAR(255) NOT NULL,
-code_sem INT NOT NULL,
-FOREIGN KEY (code_sem) REFERENCES semestre(code_sem)
+    id_image INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nom_image VARCHAR(255) NOT NULL,
+    chemin_image VARCHAR(255) NOT NULL,
+    date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    matricule INT NOT NULL,
+    FOREIGN KEY (matricule) REFERENCES etudiants(matricule) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE evaluer (
-evaluation INT NOT NULL, 
-matricule INT NOT NULL ,
-cours_code VARCHAR(50) NOT NULL,
-date_evaluation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY(matricule, cours_code),
-FOREIGN KEY(matricule) REFERENCES etudiants(matricule),
-FOREIGN KEY(cours_code) REFERENCES cours(cours_code)
+    evaluation INT NOT NULL, 
+    matricule INT NOT NULL,
+    cours_code VARCHAR(50) NOT NULL,
+    lib_annee_univ VARCHAR(100) NOT NULL,
+    date_evaluation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(matricule, cours_code, lib_annee_univ),
+    FOREIGN KEY(matricule) REFERENCES etudiants(matricule) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(cours_code) REFERENCES cours(cours_code) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(lib_annee_univ) REFERENCES etudiants(lib_annee_univ) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE commentaire (
-id_commentaire INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-lib_commentaire TEXT,
-date_commentaire TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-matricule INT NOT NULL,
-cours_code VARCHAR(50) NOT NULL,
-FOREIGN KEY(matricule) REFERENCES evaluer(matricule),
-FOREIGN KEY(cours_code) REFERENCES evaluer(cours_code)
+    id_commentaire INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    lib_commentaire TEXT,
+    date_commentaire TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    matricule INT NOT NULL,
+    cours_code VARCHAR(50) NOT NULL,
+    FOREIGN KEY(matricule) REFERENCES evaluer(matricule) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(cours_code) REFERENCES evaluer(cours_code) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE miniteur(
+id_miniteur INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+duree_miniteur INT NOT NULL,
+terminee BOOLEAN DEFAULT FALSE,
+lib_annee_univ VARCHAR(50) NOT NULL
+);
 
-#Insertion des données 
+-- Insertion des données 
 INSERT INTO niveau (intitulé_niv) VALUES
 ("L1"), ("L2"), ("L3");
 
 INSERT INTO departement (intitulé_dep, code_niv) VALUES
-("Tronc commun",1),
+("Tronc commun", 1),
 ("SDID L2", 2),
 ("SEA L2", 2),
 ("SDID L3", 3),
@@ -121,8 +128,7 @@ INSERT INTO semestre (intitulé_sem, code_niv) VALUES
 ("S5", 3),
 ("S6", 3);
 
-
--- cours insrtions
+-- Cours Insertions
 INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES 
 -- Semester 1
 ("ST11", "analyse I", 1),
@@ -172,7 +178,7 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ("HE162", "TE - conduite de réunion, coaching", 4),
 ("HE163", "développement du projet professionnel", 4),
 
--- semester 5
+-- Semester 5
 ("SDID171", "business intelligence", 5),
 ("SDID172", "big data", 5),
 ("SDID173", "deep learning", 5),
@@ -186,7 +192,6 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 
 -- SEA
 -- Semester 3
-
 ("SEA113", "statistiques sectorielles", 3),
 ("SEA114", "statistiques démographiques", 3),
 ("SEA121", "économie du développement", 3),
@@ -198,8 +203,7 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ("SEA152", "mesures de la pauvreté et conditions de vie des ménages", 4),
 ("SEA153", "économétrie I", 4),
 
-
--- semester 5
+-- Semester 5
 ("SEA171", "logiciels d'enquête", 5),
 ("SEA172", "sondage", 5),
 ("SEA181", "introduction aux big data", 5),
@@ -207,8 +211,7 @@ INSERT INTO cours (cours_code, intitulé_cours, code_sem) VALUES
 ("SEA183", "économétrie II", 5),
 ("SEA211", "Organisation des systèmes statistiques", 5),
 ("SEA212", "Management", 5),
-("SEA213", "Management", 5)
-;
+("SEA213", "Management", 5);
 
 
 #select from all tables (show the data)
@@ -216,7 +219,7 @@ SELECT * FROM niveau;
 SELECT * FROM departement;
 SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
-SELECT * FROM etudiants order by (lib_annee_univ and intitulé_dep) ASC;
+SELECT * FROM etudiants order by (lib_annee_univ) DESC;
 SELECT * FROM evaluer;
 SELECT * FROM images;
 SELECT * FROM section;
@@ -245,16 +248,22 @@ WHERE etudiants.matricule = 23615
     (departement.intitulé_dep LIKE 'SDID%' AND cours.cours_code NOT LIKE 'SEA%')
 );
   
-
-SELECT matricule, nom_prenom, email, intitulé_dep
+  
+SELECT matricule, nom_prenom, email, etudiants.intitulé_dep
 FROM etudiants 
-JOIN departement ON etudiants.code_dep = departement.code_dep
+JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
 WHERE etudiants.email = '23618@isms.esp.mr';
-
 
 SELECT ROUND(AVG(evaluation), 2) AS avg_evaluation, intitulé_cours 
 FROM evaluer 
 JOIN cours ON evaluer.cours_code = cours.cours_code
 GROUP BY intitulé_cours;
 
-SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN ('SEA L2', 'sdid l2') ORDER BY intitulé_dep;
+SELECT id_question, lib_question
+FROM question 
+JOIN section ON question.id_section = section.id_section 
+WHERE lib_annee_univ = "2024-2025" ;
+
+
+
+

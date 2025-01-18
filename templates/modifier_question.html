@@ -142,7 +142,24 @@
                 </li>
               </ul>
             </div>
+            <!--annee universitaire-->
+            <div class="admin-annee">
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+              <a href="{{url_for('parametres')}}">
+                <i class="fas fa-external-link-alt" style="color:#333333"></i>
+              </a>
+            </div>
+            <!--page category-->
             <div class="page-category">
+                {% with messages = get_flashed_messages (with_categories = true) %}
+                  {% if messages %}
+                    <ul id="flashed-messages">
+                      {% for category, message in messages %}
+                        <li class="{{category}}"> {{message}} </li>
+                      {% endfor%}
+                    </ul>
+                  {% endif %}
+                {% endwith %}
                 <!-- Modifier question -->
                 <div class="container mt-5">
                     <div class="card shadow">
@@ -202,7 +219,7 @@
 
                                 <div class="mt-4">
                                     <input type="submit" value="Modifier la question" class="btn btn-warning">
-                                    <a href="{{ url_for('questionnaire') }}" class="btn btn-secondary">Annuler</a>
+                                    <a href="{{ url_for('questionnaire') }}" class="btn btn-danger">Annuler</a>
                                 </div>
                             </form>
                         </div>

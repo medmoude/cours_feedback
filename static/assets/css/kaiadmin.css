@@ -547,6 +547,7 @@ body {
     display: flex;
     align-items: center; }
 
+
 .sidebar, .sidebar[data-background-color="white"] {
   position: fixed;
   top: 0;

@@ -138,13 +138,16 @@
                 </li>
               </ul>
             </div>
+            <!--annee universitaire-->
+            <div class="admin-annee">
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+              <a href="{{url_for('parametres')}}">
+                <i  class="fas fa-external-link-alt" style="color:#333333"></i>
+              </a>
+            </div>
             <!-- page category -->
-            <div class="page-category">
+            <div class="page-category" >
               <!--ajouter une promotion -->
-              <b>Année universitaire : {{session['annee_univ']}} </b>
-              <i  class="fas fa-chevron-right" style="color:#333333"></i>
-              <select 
-              
               <div class="ajouter-promotion-container " style="margin-top: 10px;">
                 <h2>nouvelle promotion</h2>
 
@@ -159,10 +162,31 @@
                 {% endwith %}
 
                 <!-- Form for uploading the file -->
-                <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data" id="file-form">
-                  <input type="file" name="promotion-file" id="promotion-file">
-                  <button type="submit">Ajouter</button> <br> <br>
-                </form>
+                {% if annee[3] == 'Actif' and not etudiants %}
+                  <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data" id="file-form">
+                    <input type="file" name="promotion-file" id="promotion-file">
+                    <button type="submit">Ajouter</button> <br> <br>
+                  </form>
+                {% else %}
+                  <form action="#" method="post" enctype="multipart/form-data" id="file-form">
+                    <input type="file" name="promotion-file" id="promotion-file" disabled>
+                    <button type="submit" style="opacity: 0.5; pointer-events: none;" disabled >Ajouter</button> <br> <br>
+                  </form>
+                  {% if annee[3] != 'Archivée' %}
+                    <form class="seul-etudiant" action="{{url_for('ajouter_etudiant')}}" method="post">
+                      <h4>Ajouter un etudiant</h4>
+                      <input type="number" name="matricule" placeholder="Matricule" min="0" required> <br>
+                      <input type="text" name="nom_prenom" placeholder="Nom & prénom" required><br>
+                      <select name="intitule_dep" required>
+                        <option value="" disabled selected>Sélectionnez un département</option>
+                        {% for departement in departements %}
+                          <option value="{{departement[0]}}">{{departement[0]}}</option>
+                        {% endfor %}
+                      </select>
+                      <input type="submit" value="Ajouter">
+                    </form>
+                  {% endif %}
+                {% endif %}
                 <!-- End ajouter une promotion -->
               </div>
 

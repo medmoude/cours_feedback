@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 import openpyxl
 import time
+import re
 import os 
 from werkzeug.utils import secure_filename
 import string
@@ -35,41 +36,46 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-
 #check for login (user and admin)
 def user_logged_in():
     return 'user_id' in session
 
 def admin_logged_in():
-    return 'admin_id' in session and 'actuel_annee_univ' in session
-
-
-
+    return 'admin_id' in session and 'annee_univ' in session
 
 #generate a random password
 def generate_password(length=8):
     alphabet = string.ascii_letters + string.digits
-
     password = ''.join(secrets.choice(alphabet) for _ in range(length))
 
     return password
 
+#validate annee universitaire
+def validate_annee_universitaire(annee_universitaire):
+    pattern = r"^\d{4}-\d{4}$"
+    
+    if not re.match(pattern, annee_universitaire):
+        return False
+    
+    try:
+        start_year, end_year = map(int, annee_universitaire.split('-'))
+        if start_year < end_year and (end_year - start_year == 1):
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
 
-@app.before_request
-def set_end_time():
-    if 'end_time' not in session:
-        
-        countdown_duration = 60 * 10
-        session['end_time'] = time.time() + countdown_duration 
 
 
+####################################
+        ### USER ROUTES ###
+####################################
 
 # the main route
 @app.route("/")
 def index():
     if user_logged_in():
-
-        end_time = session['end_time']
         
         #traitement des semestres impaires
         cur = mysql.connection.cursor()
@@ -144,9 +150,9 @@ def index():
         
         mois = datetime.now().month
         if mois in [10, 11, 12, 1, 2]:
-            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses, end_time=end_time)
+            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
         else:
-            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses, end_time=end_time)
+            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
         
     return redirect(url_for('login'))
 
@@ -173,20 +179,21 @@ def login():
             cur = mysql.connection.cursor()
             cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
             annees = cur.fetchall()
-            return render_template('promp_annee_univ.html', annees = annees, email = email)
+            session['admin_id'] = 'admin'
+            return render_template('promp_annee_univ.html', annees = annees)
 
         # Verify if the email of the user exists
         cur = mysql.connection.cursor()
-        cur.execute("SELECT matricule, nom_prenom, email, mot_de_pass FROM etudiants WHERE email = %s ",
+        cur.execute("SELECT matricule, nom_prenom, email, mot_de_pass, lib_annee_univ FROM etudiants WHERE email = %s ",
                     (email,))
         user = cur.fetchone()
 
         if user:
             #verify the password
             if mot_de_pass == user[3]:
-                session["user_id"] = user[0]  # Store matricule (user_id) in session
+                session["user_id"] = user[0]  # Store matricule in session
                 session["user_nom_prenom"] = user[1]
-                session["annee_univ"] = session['annee_univ']
+                session["annee_univ"] = user[4]
                 return redirect(url_for("index"))
             else:
                 flash('le mot de passe est incorrecte','error')
@@ -204,6 +211,7 @@ def login():
 def logout():
     session.pop("user_id", None)
     session.pop("annee_univ", None)
+    session.pop("user_nom_prenom", None)
     return redirect(url_for('login'))
 
 
@@ -212,6 +220,7 @@ def logout():
 def logout_admin():
     session.pop("admin_id", None)
     session.pop("annee_univ", None)
+    session.pop("annees_univs", None)
     return redirect(url_for('login'))
 
 
@@ -324,7 +333,7 @@ def formulaire_cours(cours_code):
             cur.execute("SELECT * FROM cours WHERE cours_code = %s", (cours_code,))
             cours = cur.fetchone()
 
-            cur.execute("SELECT * FROM section")
+            cur.execute("SELECT * FROM section WHERE lib_annee_univ = %s ", (session['annee_univ'],))
             sections = cur.fetchall()
 
             cur.execute("SELECT * FROM question")
@@ -351,23 +360,20 @@ def insert_formulaire(cours_code):
         if request.method == "POST":
             matricule = session['user_id']
             
-            notes = []  # Store the answers' values
-            ponderations = []  # Store the ponderation values (sum of ponderation)
-            percentages = []  # Store the calculated percentages for each question
-            commentaires = []  # Store comments
+            notes = []  
+            ponderations = [] 
+            percentages = []  
+            commentaires = [] 
             
-            # Loop through the form data
+            
             for key, value in request.form.items():
                 if key.startswith("question_"):
-                    # Extract question ID from the key (e.g., "question_1")
                     question_id = key.split('_')[1]
-                    score = int(value)  # User's selected value for the question
+                    score = int(value)  
                     
-                    # Find the hidden ponderation value for this question (e.g., "some_ponderation_1")
                     ponderation_key = f"some_ponderation_{question_id}"
                     ponderation_value = int(request.form.get(ponderation_key, 0))  # Default to 0 if not found
                     
-                    # Calculate the percentage for this question (score / ponderation * 100)
                     if ponderation_value > 0:
                         percentage = (score / ponderation_value) * 100
                     else:
@@ -379,34 +385,26 @@ def insert_formulaire(cours_code):
                     print(f"{key}: Score = {score}, Ponderation = {ponderation_value}, Percentage = {percentage}%")
                 
                 elif key.startswith("commentaire_"):
-                    # Store comments
+                    
                     commentaire_text = value
                     commentaires.append(commentaire_text)
-            print(notes) 
-            print(ponderations)
-            # Calculate the total score and total ponderation
+            
             total_score = sum(notes)
             total_ponderation = sum(ponderations)
             
-            # Calculate the total percentage based on the sum of scores and ponderations
             if total_ponderation > 0:
                 total_percentage = (total_score / total_ponderation) * 100
             else:
                 total_percentage = 0
-
             
-            print(f"Final Score: {total_score}, Final Ponderation: {total_ponderation}, Final Percentage: {total_percentage}%")
-            print(f"Commentaires: {commentaires}")
             
-            # Insert the final percentage into the `evaluer` table
             cur = mysql.connection.cursor()
             cur.execute("""
-                INSERT INTO evaluer (evaluation, matricule, cours_code) 
-                VALUES (%s, %s, %s)
-            """, (total_percentage, matricule, cours_code)) 
+                INSERT INTO evaluer (evaluation, matricule, cours_code, lib_annee_univ) 
+                VALUES (%s, %s, %s, %s)
+            """, (total_percentage, matricule, cours_code, session['annee_univ'])) 
             mysql.connection.commit()
 
-            # Insert the comments into the `commentaire` table
             for commentaire in commentaires:
                 cur.execute("""
                     INSERT INTO commentaire (lib_commentaire, matricule, cours_code)
@@ -416,7 +414,7 @@ def insert_formulaire(cours_code):
 
             cur.close()
 
-            return redirect(url_for('index'))  # Redirect to the index page after form submission
+            return redirect(url_for('index')) 
         else:
             return redirect(url_for('login'))
     return redirect(url_for('login'))
@@ -427,18 +425,24 @@ def insert_formulaire(cours_code):
        ### ADMIN ROUTES ###
 ######################################
 @app.route("/visualisation")
-def visualisation ():
+def visualisation():
     if admin_logged_in():
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT intitulé_cours, ROUND(AVG(evaluation), 2) AS avg_evaluation 
+            SELECT intitulé_cours, ROUND(AVG(evaluation), 1) AS avg_evaluation 
             FROM evaluer 
-            JOIN cours ON evaluer.cours_code = cours.cours_code
+            JOIN cours ON evaluer.cours_code = cours.cours_code 
+            WHERE lib_annee_univ = %s
             GROUP BY intitulé_cours;
-        """)
+        """, (session['annee_univ'],))
         evaluation_data = cur.fetchall()
 
-        return render_template('visualisation.html', evaluation_data = evaluation_data)
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
+        cur.close()
+
+        return render_template('visualisation.html', evaluation_data = evaluation_data, annee = annee)
     
     return redirect(url_for('login'))
 
@@ -452,8 +456,9 @@ def chart_data():
             SELECT c.intitulé_cours, ROUND(AVG(ev.evaluation), 0) AS pourcentage
             FROM evaluer ev
             JOIN cours c ON ev.cours_code = c.cours_code
+            WHERE lib_annee_univ = %s
             GROUP BY c.intitulé_cours
-        """)
+        """, (session['annee_univ'],))
         chart_data = cur.fetchall()
         cur.close()
 
@@ -467,10 +472,19 @@ def chart_data():
 def questionnaire():
     if admin_logged_in():
         cur = mysql.connection.cursor()
-        cur.execute("SELECT id_question, lib_question FROM question")
+        cur.execute("""
+                    SELECT id_question, lib_question
+                    FROM question 
+                    JOIN section ON question.id_section = section.id_section 
+                    WHERE lib_annee_univ = %s ;
+                    """, (session['annee_univ'],))
         questions = cur.fetchall()
+
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
         cur.close()
-        return render_template('questionnaire.html', questions=questions)
+        return render_template('questionnaire.html', questions=questions , annee = annee)
     
     return redirect(url_for('login'))
 
@@ -479,6 +493,8 @@ def questionnaire():
 def ajouter_question():
     if admin_logged_in():
         cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
+        annee = cur.fetchone()
 
         if request.method == "POST":
             # Fetch the main question, its section ID, and type
@@ -513,18 +529,16 @@ def ajouter_question():
                                 (response, ponderation, question_id))
                 mysql.connection.commit()
 
-            cur.close()
             return redirect(url_for('questionnaire'))
 
         # Fetch all sections for the dropdown
-        cur.execute("SELECT id_section, lib_section FROM section")
+        cur.execute("SELECT id_section, lib_section FROM section WHERE lib_annee_univ = %s ", (session['annee_univ'],))
         sections = cur.fetchall()
         cur.close()
 
-        return render_template('ajouter_question.html', sections=sections)
+        return render_template('ajouter_question.html', sections=sections, annee = annee)
 
     return redirect(url_for('login'))
-
 
 
 @app.route('/modifier_question/<int:question_id>', methods=['GET', 'POST'])
@@ -588,15 +602,17 @@ def modifier_question(question_id):
         responses = cur.fetchall()
 
         # Fetch all sections for the dropdown
-        cur.execute("SELECT id_section, lib_section FROM section")
+        cur.execute("SELECT id_section, lib_section FROM section WHERE lib_annee_univ = %s ",(session['annee_univ'],))
         sections = cur.fetchall()
 
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
         cur.close()
 
-        return render_template('modifier_question.html', question=question, responses=responses, sections=sections)
+        return render_template('modifier_question.html', question=question, responses=responses, sections=sections, annee = annee)
 
     return redirect(url_for('login'))
-
 
 
 @app.route('/supprimer_question/<int:question_id>')
@@ -615,132 +631,142 @@ def supprimer_question(question_id):
 
 @app.route('/ajouter_section', methods = ['GET', 'POST'])
 def ajouter_section():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM section")
-    sections = cur.fetchall()
-    sections_list = [i[1] for i in sections]
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM section WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        sections = cur.fetchall()
+        sections_list = [i[1] for i in sections]
 
-    cur.execute("SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC ")
-    annees = cur.fetchall()
+        cur.execute("SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC ")
+        annees = cur.fetchall()
 
-    if request.method == 'POST':
-        new_section = request.form['new_section']
-        
-        #verify if the input exists and have a text in it 
-        if new_section and new_section.strip() != '' :
-            #don't allow the admin to add an existing section
-            if new_section not in sections_list:
-                cur.execute("INSERT INTO section (lib_section, lib_annee_univ) VALUES (%s, %s)",
-                            (new_section, session ))
-                mysql.connection.commit()
-                cur.close()
-                return redirect(url_for('ajouter_section'))
-            else: 
-                flash('la section existe déjà !', 'error')
-                return render_template('ajouter_section.html', sections = sections, sections_list = sections_list)
-        
-    return render_template('ajouter_section.html', sections = sections, sections_list = sections_list)
+        if request.method == 'POST':
+            new_section = request.form['new_section']
+            
+            #verify if the input exists and have a text in it 
+            if new_section and new_section.strip() != '' :
+                #don't allow the admin to add an existing section
+                if new_section not in sections_list:
+                    cur.execute("INSERT INTO section (lib_section, lib_annee_univ) VALUES (%s, %s)",
+                                (new_section, session['annee_univ'] ))
+                    mysql.connection.commit()
+                    cur.close()
+                    return redirect(url_for('parametres'))
+                else: 
+                    flash('la section existe déjà !', 'error')
+                    return render_template('parametres.html', sections = sections, sections_list = sections_list)
+            
+        return render_template('parametres.html', sections = sections, sections_list = sections_list)
+    
+    return(redirect(url_for('login')))
 
 
 @app.route('/modifier_section_informations/<id_section>')
 def modifier_section_informations(id_section):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM section WHERE id_section = %s ", (id_section,))
-    section = cur.fetchone()
-    return render_template('modifier_section.html', section = section)
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM section WHERE id_section = %s ", (id_section,))
+        section = cur.fetchone()
+
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
+        cur.close()
+        return render_template('modifier_section.html', section = section, annee = annee)
+    
+    return redirect(url_for('login'))
 
 
 @app.route('/modifier_section/<id_section>', methods = ['GET', 'POST'])
 def modifier_section(id_section):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM section")
-    sections = cur.fetchall()
-    sections_list = [i[1] for i in sections]
-    
-    cur.execute("SELECT lib_section FROM section WHERE id_section = %s", (id_section,))
-    current_section_name = cur.fetchone()[0]
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM section WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        sections = cur.fetchall()
+        sections_list = [i[1] for i in sections]
+        
+        cur.execute("SELECT lib_section FROM section WHERE id_section = %s", (id_section,))
+        current_section_name = cur.fetchone()[0]
 
-    if request.method == 'POST':
-        lib_section = request.form['lib_section'].strip()
+        if request.method == 'POST':
+            lib_section = request.form['lib_section'].strip()
 
-        if lib_section == '':
-            flash("La sélection ne peut pas être vide !", "error")
-            return redirect(url_for('modifier_section_informations', id_section=id_section))
+            if lib_section == '':
+                flash("La sélection ne peut pas être vide !", "error")
+                return redirect(url_for('modifier_section_informations', id_section=id_section))
 
-        if lib_section != current_section_name and lib_section in sections_list:
-            flash("le nom de la section existe déjà !", "error")
-            return redirect(url_for('modifier_section_informations', id_section=id_section))
+            if lib_section != current_section_name and lib_section in sections_list:
+                flash("le nom de la section existe déjà !", "error")
+                return redirect(url_for('modifier_section_informations', id_section=id_section))
 
-        cur.execute("UPDATE section SET lib_section = %s WHERE id_section = %s", (lib_section, id_section))
-        mysql.connection.commit()
-        cur.close()
-        return redirect(url_for('ajouter_section'))
+            cur.execute("UPDATE section SET lib_section = %s WHERE id_section = %s", (lib_section, id_section))
+            mysql.connection.commit()
+            cur.close()
+            return redirect(url_for('ajouter_section'))
 
-    return render_template('modifier_section_informations.html', id_section=id_section)
+        return redirect(url_for('modifier_section_informations', id_section=id_section))
+    return redirect(url_for('login'))
 
 
 @app.route('/supprimer_section/<id_section>')
 def supprimer_section(id_section):
-    cur = mysql.connection.cursor()
-    cur.execute("DELETE from section WHERE id_section = %s ", (id_section,))
-    mysql.connection.commit()
-    cur.close()
-    return redirect(url_for('ajouter_section'))
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE from section WHERE id_section = %s ", (id_section,))
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('parametres'))
+    
+    return redirect(url_for('login'))
 
 
 @app.route('/ajouter_promotion', methods=['GET', 'POST'])
 def ajouter_promotion():
     if admin_logged_in():
         cur = mysql.connection.cursor()
-        if 'annee_univ' in session:
-            query = """
-                    SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
-                    FROM etudiants 
-                    JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
-                    JOIN annee_universitaire ON etudiants.lib_annee_univ = annee_universitaire.lib_annee_univ
-                    WHERE etudiants.lib_annee_univ = %s
-                    ORDER BY code_dep ASC;
-                    """
-            cur.execute(query, (session['annee_univ'],))
-            etudiants = cur.fetchall()
-            
+        query = """
+                SELECT matricule, nom_prenom, email, etudiants.intitulé_dep, etudiants.lib_annee_univ 
+                FROM etudiants 
+                JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
+                JOIN annee_universitaire ON etudiants.lib_annee_univ = annee_universitaire.lib_annee_univ
+                WHERE etudiants.lib_annee_univ = %s
+                ORDER BY code_dep ASC;
+                """
+        cur.execute(query, (session['annee_univ'],))
+        etudiants = cur.fetchall()
+        #fetching the data of the current year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
+
+        #fetch les départements pour ajouter un étudiant
+        cur.execute("SELECT intitulé_dep FROM departement")
+        departements = cur.fetchall()
         cur.close()
 
-        
-
-        # If the form is submitted with the file (from file-form)
         if request.method == 'POST' :
             if 'promotion-file' not in request.files:
                 flash('Aucun fichier trouvé', 'error')
-                return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
 
             file = request.files['promotion-file']
 
             if file.filename == '':
                 flash('Aucun fichier sélectionné', 'error')
-                return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
 
             if file and file.filename.endswith('.xlsx'):
                 try:
                     promotion_data = pd.read_excel(file, sheet_name=None)
                 except Exception as e:
                     flash('Le fichier Excel est corrompu ou invalide', 'error')
-                    return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                    return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
 
                 for sheet_name, df in promotion_data.items():
                     required_columns = ['matricule', 'nom_prenom', 'email', 'intitulé_dep']
                     if not all(col in df.columns for col in required_columns):
                         flash('Le fichier Excel est manquant de certaines colonnes obligatoires', 'error')
-                        return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                        return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
                     
-                    cur = mysql.connection.cursor()
-                    cur.execute("SELECT * from annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
-                    annee = cur.fetchone()
-                    if not annee :
-                        cur.execute("INSERT INTO annee_universitaire (lib_annee_univ) VALUES (%s)", (session['annee_univ'],))
-                        mysql.connection.commit()
-
-                    cur.close()
 
                     for index, row in df.iterrows():
                         matricule = row.get('matricule', None)
@@ -748,7 +774,6 @@ def ajouter_promotion():
                         email = row.get('email', None)
                         mot_de_pass = generate_password(8)
                         intitulé_dep = row.get('intitulé_dep', None)
-                        lib_annee_univ = row.get('lib_annee_univ', None)
 
                         try:
                             cur = mysql.connection.cursor()
@@ -756,93 +781,305 @@ def ajouter_promotion():
                                     INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ) 
                                     VALUES (%s, %s, %s, %s, %s, %s)
                                     """
-                            cur.execute(query, (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ))
+                            cur.execute(query, (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, session['annee_univ']))
                             mysql.connection.commit()
                             cur.close()
                             
                         except IntegrityError:
                             flash('Cette promotion existe déjà', 'error')
-                            return render_template('ajouter_promotion.html', etudiants=etudiants, annees=annees)
+                            return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
                 flash('Fichier téléchargé avec succès et données insérées', 'success')
                 return redirect(url_for('ajouter_promotion'))
             else:
                 flash('Seuls les fichiers Excel sont acceptables', 'error')
 
-        return render_template('ajouter_promotion.html', etudiants=etudiants)
+        return render_template('ajouter_promotion.html', etudiants=etudiants, annee = annee, departements = departements)
 
+    return redirect(url_for('login'))
+
+
+@app.route("/ajouter_etudiant", methods = ['POST', 'GET'])
+def ajouter_etudiant():
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT matricule FROM etudiants WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        etudiants = [int(i[0]) for i in cur.fetchall()]
+        if request.method == 'POST':
+            matricule = request.form['matricule'].strip()
+            matricule = int(matricule)
+            nom_prenom = request.form['nom_prenom'].strip()
+            intitule_dep = request.form['intitule_dep']
+
+            if matricule in etudiants:
+                flash ("L'étudiant existe déjà! ", 'error')
+                return redirect(url_for('ajouter_promotion'))
+            
+            email = str(matricule) + "@isms.esp.mr"
+            mot_de_pass = generate_password(8)
+            lib_annee_univ = session['annee_univ']
+
+            cur.execute("""
+                        INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ)
+                        VALUES(%s, %s, %s, %s, %s, %s)
+                        """,(matricule, nom_prenom, email, mot_de_pass, intitule_dep, lib_annee_univ))
+            mysql.connection.commit()
+            cur.close()
+            flash("Les données de l'étudiant·e ont été enregistrées correctement", 'success')
+            return redirect(url_for('ajouter_promotion'))
+        
     return redirect(url_for('login'))
 
 
 @app.route("/envoyer_formulaire" , methods = ['GET', 'POST'])
 def envoyer_formulaire():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM departement ")
-    departements = cur.fetchall()
-    etudiants_info = []
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM departement ")
+        departements = cur.fetchall()
 
-    if request.method == 'POST':
-        departements_selectionnees = request.form.getlist('departement')
-        cur.execute("""SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
-                     ORDER BY intitulé_dep;""", (departements_selectionnees,))
-        etudiants_info = cur.fetchall()
+
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
+        annee = cur.fetchone()
         
+        etudiants_info = []
 
-    return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info)
+        if request.method == 'POST':
+            departements_selectionnees = request.form.getlist('departement')
+            cur.execute("""SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
+                        ORDER BY intitulé_dep;""", (departements_selectionnees,))
+            etudiants_info = cur.fetchall()
+        cur.close()
+        return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info, annee = annee)
+
+    return redirect(url_for('login'))
 
 
-
-@app.route("/parametres")
+@app.route("/parametres", methods = ['POST', 'GET'])
 def parametres():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT lib_annee_univ, seuil_annee_univ FROM annee_universitaire")
-    annees = cur.fetchall()
-    cur.close()
-    return render_template("parametres.html", seuils = annees[0], annees = annees)
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM annee_universitaire")
+        annees = cur.fetchall()
+        cur.execute("SELECT * FROM section WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        sections = cur.fetchall()
+
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        annee = cur.fetchone()
+        cur.close()
+        return render_template("parametres.html", annees = annees, sections = sections, annee = annee)
+    
+    return redirect(url_for('login'))
 
 
-@app.route("/annee_univ", methods = ['POST', 'GET'])
-def annee_univ():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM ")
-    if request.method == 'POST':
-        annee_univ = request.form['annee_univ']
-        session['actuel_annee_univ'] = annee_univ
-        session['admin_id'] = 'admin'
-        return redirect(url_for('visualisation'))
+@app.route("/promp_annee_univ", methods = ['POST', 'GET'])
+def promp_annee_univ():
+    if 'admin_id' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+        annees = cur.fetchall()
+        if request.method == 'POST':
+            annee_univ = request.form['annee_univ']
+            session['annee_univ'] = annee_univ
+            session['annees_univs'] = annees
+            return redirect(url_for('visualisation'))
 
+    return redirect(url_for('login'))
+      
 
-@app.route("/creer_annee_univ")
+@app.route("/creer_promp_annee_univ", methods = ['POST', 'GET'])
+def creer_promp_annee_univ():
+    if 'admin_id' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+        annees = cur.fetchall()
+        list_annees = [i[0] for i in annees]
+        
+        if request.method == 'POST':
+            nouvelle_annee = request.form['nouvelle_annee'].strip()
+            
+            if not validate_annee_universitaire(nouvelle_annee):
+                flash('invalid année universitaire', 'error')
+                return render_template('promp_annee_univ.html', annees = annees)
+
+            if nouvelle_annee in list_annees:
+                flash("L'année universitaire existe! ", "error")
+                return render_template('promp_annee_univ.html', annees = annees)
+            
+            id_annee_univ = nouvelle_annee.split("-")[0]
+            
+            cur.execute("""
+                        INSERT INTO annee_universitaire (id_annee_univ, lib_annee_univ, status_annee_univ)
+                        VALUES(%s, %s , %s)
+                        """
+                        ,(int(id_annee_univ), nouvelle_annee, 'Actif'))
+            mysql.connection.commit()
+
+            #fetching annees again to store them in session
+            cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+            annees = cur.fetchall()
+            cur.close()
+            session['annee_univ'] = nouvelle_annee
+            session['annees_univs'] = annees
+            
+            return redirect(url_for('visualisation'))
+        
+    return redirect(url_for('login'))
+    
+
+@app.route("/creer_annee_univ", methods=['POST', 'GET'])
 def creer_annee_univ():
-    cur = mysql.connection.cursor()
-    cur.execute("")
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+        annees = cur.fetchall()
+
+        list_annees = [annee[0] for annee in annees]
+
+        if request.method == 'POST':
+            nouvelle_annee = request.form['nouvelle_annee']
+            if not validate_annee_universitaire(nouvelle_annee):
+                flash('invalid année universitaire', 'error')
+                return redirect(url_for('parametres'))
+            
+            seuil = request.form['seuil']
+            id_annee_univ = nouvelle_annee.split("-")[0]
+
+            if not nouvelle_annee or not seuil:
+                flash("tous les champs sont obligatoires", 'error')
+                return redirect(url_for('parametres'))
+            
+            if nouvelle_annee in list_annees:
+                flash("L'année universitaire existe!", "error")
+                return redirect('parametres')
+
+            cur.execute("""
+                        INSERT INTO annee_universitaire (id_annee_univ, lib_annee_univ, seuil_annee_univ, status_annee_univ)
+                        VALUES(%s, %s , %s, %s)
+                        """, (int(id_annee_univ), nouvelle_annee, seuil, 'Actif'))
+            mysql.connection.commit()
+            
+            #fetching annees again to store them in session
+            cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+            annees = cur.fetchall()
+            cur.close()
+            session['annees_univs'] = annees
+            flash("L'année universitaire a été créée avec succès", "success")
+            return redirect(url_for('parametres'))
+        
+    return redirect(url_for('login'))
 
 
 @app.route("/modifier_annee_univ_info/<int:id_annee_univ>")
 def modifier_annee_univ_info(id_annee_univ):
-    return "modifier"
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id_annee_univ, lib_annee_univ, seuil_annee_univ FROM annee_universitaire WHERE id_annee_univ = %s ",(id_annee_univ,))
+        annee = cur.fetchone()
+
+        #fetch the data of the selected year 
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
+        current_annee = cur.fetchone()
+        cur.close()
+        return render_template('modifier_annee.html', annee = annee, current_annee = current_annee)
+    
+    return redirect(url_for('login'))
 
 
-@app.route("/modifier_annee_univ/<int:id_annee_univ>")
+@app.route("/modifier_annee_univ/<int:id_annee_univ>", methods=['POST', 'GET'])
 def modifier_annee_univ(id_annee_univ):
-    return "m"
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+        list_annees = [i[0] for i in cur.fetchall()]
+        if request.method == 'POST':
+            annee = request.form['annee']
+            if not validate_annee_universitaire(annee):
+                flash('invalid année universitaire', 'error')
+                return redirect(url_for('modifier_annee_univ_info', id_annee_univ = id_annee_univ))
+            
+            seuil = request.form['seuil']
+            if not annee or not seuil:
+                flash("L'année et la seuil ne peuvent pas être vide!", "error")
+                return redirect(url_for('modifier_annee_univ_info', id_annee_univ = id_annee_univ))
+
+            cur.execute("SELECT lib_annee_univ FROM annee_universitaire WHERE lib_annee_univ = %s ", (annee,))
+            annee_modifiee = cur.fetchone()[0]
+            print("modifiée ", annee_modifiee)
+            if annee in list_annees[0] and annee != annee_modifiee:
+                flash("L'année universitaire existe déjà. Veuillez en choisir une autre.", "error")
+                return redirect(url_for('modifier_annee_univ_info', id_annee_univ=id_annee_univ))
+
+            cur.execute("""
+                UPDATE annee_universitaire 
+                SET lib_annee_univ = %s, seuil_annee_univ = %s 
+                WHERE id_annee_univ = %s
+            """, (annee, seuil, id_annee_univ))
+            mysql.connection.commit()
+
+            #fetching annees again to store them in session
+            cur.execute("SELECT lib_annee_univ FROM annee_universitaire")
+            annees = cur.fetchall()
+            session['annees_univs'] = annees
+            flash("L'année universitaire a été mise à jour avec succès.", "success")
+            return redirect(url_for('parametres'))
+
+        cur.close()
+        return redirect(url_for('parametres'))
+    
+    return redirect(url_for('login'))
 
 
 @app.route("/supprimer_annee_univ/<int:id_annee_univ>")
 def supprimer_annee_univ(id_annee_univ):
-    return "dk"
-
-@app.route("/modifier_seuil", methods = ['POST', 'GET'])
-def modifier_seuil ():
-    cur = mysql.connection.cursor()
-
-    if request.method == 'POST':
-        seuil = request.form['seuil']
-        cur.execute("UPDATE annee_universitaire SET seuil_annee_univ =%s",(seuil,))
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM annee_universitaire WHERE id_annee_univ = %s ",(id_annee_univ,))
         mysql.connection.commit()
-        cur.close()
-        return redirect(url_for('parametres'))
+        cur.execute("SELECT lib_annee_univ FROM annee_universitaire ")
+        annees = cur.fetchall()
+        
+        #if there still some years go back to parametres otherwise go to login
+        if len(annees) != 0:
+            list_annees = [i[0] for i in annees]
+            session['annee_univ'] = list_annees[0]
+            session['annees_univs'] = annees
+            return redirect(url_for('parametres'))
+        else:
+            return redirect(url_for('logout_admin'))
+        
+    return redirect(url_for('login'))
 
+
+@app.route("/archiver_ou_unarchiver_anne_univ/<int:id_annee_univ>", methods = ['POST', 'GET'])
+def archiver_ou_unarchiver_anne_univ(id_annee_univ):
+    if admin_logged_in():
+        if request.method == 'POST':
+            status = request.form['status']
+            cur = mysql.connection.cursor()
+            cur.execute("""UPDATE annee_universitaire SET status_annee_univ = %s WHERE id_annee_univ = %s """
+                        ,(status, id_annee_univ))
+            mysql.connection.commit()
+            cur.close()
+            return redirect(url_for('parametres'))
     
+    return redirect(url_for('login'))
+
+
+@app.route("/changer_annee_univ", methods=['POST', 'GET'])
+def changer_annee_univ():
+    if admin_logged_in():
+        if request.method == 'POST':
+            annee = request.form['annee']
+            print(annee)
+            if annee:
+                session['annee_univ'] = annee
+            else:
+                flash("Veuillez sélectionner une année universitaire", 'error')
+        return redirect(url_for('parametres'))
+    
+    return redirect(url_for('login'))
+
 
 
 

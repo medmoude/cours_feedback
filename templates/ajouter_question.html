@@ -142,68 +142,92 @@
                 </li>
               </ul>
             </div>
+            <!--annee universitaire-->
+            <div class="admin-annee">
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+              <a href="{{url_for('parametres')}}">
+                <i class="fas fa-external-link-alt" style="color:#333333"></i>
+              </a>
+            </div>
+            <!--page category-->
             <div class="page-category">
-                <!-- ajouter question -->
-                <div class="container mt-5">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0">Ajouter une question</h4>
-                        </div>
-                        <div class="card-body">
-                            <form method="POST" id="question-form" action=" {{url_for('ajouter_question')}} ">
-                                <div class="form-group mb-0">
-                                    <label for="section">Choisir un section: </label>
-                                    <select id="section" name="section" class="form-control" required>
-                                        {% for section in sections %}
-                                            <option value="{{section[0]}}"> {{section[1]}} </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="type" class="form-label">Type de question:</label>
-                                    <select id="type" name="type" class="form-control" onchange="toggleQuestionType()" required>
-                                        <option value="" disabled selected>Choisir un type</option>
-                                        <option value="textarea">Text</option>
-                                        <option value="checkbox">Checkbox</option>
-                                        <option value="radio">Radio</option>
-                                        <option value="select">Select</option>
-                                    </select>
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="question" class="form-label">Question:</label>
-                                    <textarea id="question" name="question" class="form-control" placeholder="Enter the question" required></textarea>
-                                </div>
-                                <div id="options-section" style="display: none;">
-                                    <div class="form-group mt-3">
-                                        <label for="responses" class="form-label">Réponses possibles et pondérations :</label>
-                                        <div id="responses-container">
-                                            <div class="input-group mb-2">
-                                                <input type="text" name="reponse-A" class="form-control" placeholder="Response A" required>
-                                                <input type="number" name="ponderation-A" class="form-control" placeholder="Poids A" min="0" max="100" style="width: 150px;" required>
-                                            </div>
-                                            <div class="input-group mb-2">
-                                                <input type="text" name="reponse-B" class="form-control" placeholder="Response B" required>
-                                                <input type="number" name="ponderation-B" class="form-control" placeholder="Poids B" min="0" max="100" style="width: 150px;" required>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">Ajouter une Option</button>
-                                    </div>
-                                </div>
-                                <div class="mt-4">
+              
+              {% with messages = get_flashed_messages (with_categories = true) %}
+                {% if messages %}
+                  <ul id="flashed-messages">
+                    {% for category, message in messages %}
+                      <li class="{{category}}"> {{message}} </li>
+                    {% endfor%}
+                  </ul>
+                {% endif %}
+              {% endwith %}
+              <!-- ajouter question -->
+              <div class="container mt-5">
+                  <div class="card shadow">
+                      <div class="card-header bg-primary text-white">
+                          <h4 class="mb-0">Ajouter une question</h4>
+                      </div>
+                      <div class="card-body">
+                          <form method="POST" id="question-form" action=" {{url_for('ajouter_question')}} ">
+                              <div class="form-group mb-0">
+                                  <label for="section">Choisir un section: </label>
+                                  <select id="section" name="section" class="form-control" required>
+                                      {% for section in sections %}
+                                          <option value="{{section[0]}}"> {{section[1]}} </option>
+                                      {% endfor %}
+                                  </select>
+                              </div>
+                              <div class="form-group">
+                                  <label for="type" class="form-label">Type de question:</label>
+                                  <select id="type" name="type" class="form-control" onchange="toggleQuestionType()" required>
+                                      <option value="" disabled selected>Choisir un type</option>
+                                      <option value="textarea">Text</option>
+                                      <option value="checkbox">Checkbox</option>
+                                      <option value="radio">Radio</option>
+                                      <option value="select">Select</option>
+                                  </select>
+                              </div>
+                              <div class="form-group mt-3">
+                                  <label for="question" class="form-label">Question:</label>
+                                  <textarea id="question" name="question" class="form-control" placeholder="Enter the question" required></textarea>
+                              </div>
+                              <div id="options-section" style="display: none;">
+                                  <div class="form-group mt-3">
+                                      <label for="responses" class="form-label">Réponses possibles et pondérations :</label>
+                                      <div id="responses-container">
+                                          <div class="input-group mb-2">
+                                              <input type="text" name="reponse-A" class="form-control" placeholder="Response A" required>
+                                              <input type="number" name="ponderation-A" class="form-control" placeholder="Poids A" min="0" max="100" style="width: 150px;" required>
+                                          </div>
+                                          <div class="input-group mb-2">
+                                              <input type="text" name="reponse-B" class="form-control" placeholder="Response B" required>
+                                              <input type="number" name="ponderation-B" class="form-control" placeholder="Poids B" min="0" max="100" style="width: 150px;" required>
+                                          </div>
+                                      </div>
+                                      <button type="button" class="btn btn-secondary mt-2" onclick="addOption()">Ajouter une Option</button>
+                                  </div>
+                              </div>
+                              <div class="mt-4">
+                                  {% if annee[3] == 'Actif'%}
                                     <input type="submit" value="Enregistrer" class="btn btn-primary">
                                     <input type="reset" value="Effacer" class="btn btn-warning">
-                                </div>
-                            </form>
-                            <br>
-                            <a href="{{ url_for('questionnaire') }}">
-                                <h4>Liste des questions</h4>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <!--end ajouter question-->
+                                  {% else %}
+                                    <input type="submit" value="Enregistrer" class="btn btn-primary" disabled style="opacity: 0.5; cursor: none;">
+                                    <input type="reset" value="Effacer" class="btn btn-warning" disabled style="opacity: 0.5; cursor: none;">
+                                  {% endif %}
+                              </div>
+                          </form>
+                          <br>
+                          <a href="{{ url_for('questionnaire') }}">
+                              <h4>Liste des questions</h4>
+                          </a>
+                      </div>
+                  </div>
+              </div>
+              <!--end ajouter question-->
             </div>
             <!--end page category-->
+            </div>
           </div>
         </div>
     

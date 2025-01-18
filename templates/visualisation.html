@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}  " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }} " />
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kaiadmin.min.css') }}  " />
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}  ">
 
   </head>
   <body>
@@ -140,30 +139,47 @@
                 </li>
               </ul>
             </div>
+            <!--annee universitaire-->
+            <div class="admin-annee">
+              <b >Année universitaire : {{session['annee_univ']}} (<span style="font-size: 15px; border-radius: 5px; background-color: white; color: {%if annee[3] == 'Actif'%} green; {% else %} #b71c1c; {%endif%} "> {{annee[3]}} </span>) </b>
+              <a href="{{url_for('parametres')}}">
+                <i class="fas fa-external-link-alt" style="color:#333333"></i>
+              </a>
+            </div>
+            <!--page category-->
             <div class="page-category">
+              {% with messages = get_flashed_messages (with_categories = true) %}
+                {% if messages %}
+                    <ul id="flashed-messages">
+                        {% for category, message in messages %}
+                        <li class="{{category}}"> {{message}} </li>
+                        {% endfor%}
+                    </ul>
+                {% endif %}
+              {% endwith %}
                 <!-- visualisation -->
-                <b>Année universitaire : {{session['annee_univ']}} </b>
-                <a href="">
-                  <i  class="fas fa-chevron-right" style="color:#333333"></i>
-                  Choisir un autre année
-                </a>
-                <h1 >Données des évaluation</h1>
-                <table border="1">
-                    <tr>
-                        <th>Cours</th>
-                        <th>Moyenne des évaluation</th>
-                    </tr>
-                    {% for row in evaluation_data %}
-                    <tr>
-                        
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
+                {% if evaluation_data %}
+                  <h1 >Données des évaluation</h1>
+                  <table>
+                      <tr>
+                          <th>Cours</th>
+                          <th>Moyenne des évaluation</th>
+                      </tr>
+                      {% for row in evaluation_data %}
+                      <tr>
+                          
+                          <td>{{ row[0] }}</td>
+                          <td>{{ row[1] }}%</td>
+                      </tr>
+                      {% endfor %}
+                  </table>
 
-                <h4>la moyenne des évaluations des cours</h4>
-                <canvas id="evaluationChart" ></canvas>
+                  <h4>la moyenne des évaluations des cours</h4>
+                  <button id="downloadBtn">Télécharger le graphe</button>
+                  <canvas id="evaluationChart" ></canvas>
+                {% else %}
+                  <h1>pas de visualisation pour cette année</h1>
+                {% endif %}
                 <!--end visualisation-->
             </div>
             <!--end page category-->
@@ -183,73 +199,128 @@
     <script src="{{ url_for('static', filename = 'assets/js/core/popper.min.js') }}"></script>
     <script src="{{ url_for('static', filename = 'assets/js/core/bootstrap.min.js') }} "></script>
 
-    <!--the script for chart.js functionnality-->
     <script>
-        fetch("/chart-data")
-            .then(response => response.json())
-            .then(data => {
-                const labels = data.map(item => item[0]);
-                // Convert scores to numbers (in case they're stored as strings)
-                const scores = data.map(item => Number(item[1])); // Ensure scores are numbers
-                console.log(labels)
-                console.log(scores)
-    
-                // Calculate the mean of the scores
-                const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    
-                const ctx = document.getElementById('evaluationChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'moyenne des évaluations',
-                                data: scores,
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderColor: 'rgba(244, 244, 244, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'ligne de la moyenne',
-                                data: Array(scores.length).fill(mean),
-                                borderColor: 'rgba(255, 99, 132, 1)', // Change this to your desired color
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.1,
-                                type: 'line'
-                            }
-                        ]
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                ticks: {
-                                    color: 'black'
-                                },
-                                grid: {
-                                    color: 'rgba(200, 200, 200, 0.3)'
-                                }
-                            },
-                            y: {
-                                ticks: {
-                                    color: 'black'
-                                },
-                                grid: {
-                                    color: 'rgba(200, 200, 200, 0.3)'
-                                },
-                                beginAtZero: true,
-                                suggestedMin: Math.min(...scores, mean) - 1,
-                                suggestedMax: Math.max(...scores, mean) + 1
-                            }
-                        }
-                    }
-                });
-            });
+      fetch("/chart-data")
+      .then(response => response.json())
+      .then(data => {
+          const labels = data.map(item => item[0]);
+          const scores = data.map(item => Number(item[1])); // Ensure scores are numbers
+          let seuil = {{annee[2]}};
+  
+          // Sort the scores in ascending order (croissant)
+          const sortedData = data.sort((a, b) => Number(a[1]) - Number(b[1])); // Sort based on the second element (score)
+          const sortedLabels = sortedData.map(item => item[0]);
+          const sortedScores = sortedData.map(item => Number(item[1]));
+  
+          const ctx = document.getElementById('evaluationChart').getContext('2d');
+  
+          // Define the custom plugin to display percentages
+          const percentagePlugin = {
+              id: 'percentagePlugin',
+              afterDatasetsDraw(chart) {
+                  const { ctx, data, chartArea: { top }, scales: { x, y } } = chart;
+  
+                  ctx.save(); // Save the current canvas state
+  
+                  // Loop through each data point and draw the percentage above the bar
+                  data.datasets[0].data.forEach((value, index) => {
+                      const barX = x.getPixelForValue(index); // Get the x-position of the bar
+                      const barY = y.getPixelForValue(value); // Get the y-position for the bar height
+                      
+                      ctx.fillStyle = 'black'; // Text color
+                      ctx.font = '12px Arial'; // Font size and family
+                      ctx.textAlign = 'center'; // Center align text
+                      ctx.textBaseline = 'bottom'; // Position text above the bar
+                      ctx.fillText(value + '%', barX, barY - 5); // Draw text above the bar
+                  });
+  
+                  ctx.restore(); // Restore canvas state
+              }
+          };
+  
+          // Create the chart
+          const chart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                  labels: sortedLabels, // Use the sorted labels
+                  datasets: [
+                      {
+                          label: 'moyenne des évaluations',
+                          data: sortedScores, // Use the sorted scores
+                          backgroundColor: '#1E90FF',
+                          borderColor: 'rgba(244, 244, 244, 1)',
+                          borderWidth: 1
+                      },
+                      {
+                          label: 'ligne à ' + seuil,
+                          data: Array(sortedScores.length).fill(seuil), // The value for the horizontal line
+                          borderColor: 'orange', // Color for the horizontal line
+                          borderWidth: 2,
+                          fill: false,
+                          tension: 0,
+                          type: 'line',
+                      }
+                  ]
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      legend: {
+                          labels: {
+                              color: 'black'
+                          }
+                      },
+                      tooltip: {
+                          callbacks: {
+                              label: function(tooltipItem) {
+                                  return tooltipItem.raw + '%'; // Add % sign in the tooltip
+                              }
+                          }
+                      }
+                  },
+                  scales: {
+                      x: {
+                          ticks: {
+                              color: 'black'
+                          },
+                          grid: {
+                              color: 'rgba(200, 200, 200, 0.3)'
+                          }
+                      },
+                      y: {
+                          ticks: {
+                              color: 'black',
+                              callback: function(value) {
+                                  return value + '%'; // Append percentage sign
+                              }
+                          },
+                          grid: {
+                              color: 'rgba(200, 200, 200, 0.3)'
+                          },
+                          beginAtZero: true,
+                          suggestedMin: 0,
+                          suggestedMax: 100,
+                          max: 100,
+                          min: 0
+                      }
+                  }
+              },
+              plugins: [percentagePlugin] // Add the custom plugin
+          });
+  
+          document.getElementById('downloadBtn').addEventListener('click', function () {
+              const imageUrl = chart.toBase64Image(); 
+              const link = document.createElement('a'); 
+              link.href = imageUrl;
+              link.download = 'evaluation-chart.png'; 
+              link.click(); 
+          });
+      });
     </script>
+  
     
-    
-
+  
+  
     
     <!-- jQuery Scrollbar -->
     <script src="{{ url_for('static', filename = 'assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>

@@ -1,6 +1,6 @@
 h1{
     color:#345c3f;
-    background-color: #f4f4f4;
+    background-color: white;
     max-width: 400px;
     padding: 5px;
     border-radius: 5px;
@@ -14,13 +14,65 @@ h4{
 
 table{
     color:black;
-    background-color: #f4f4f4;
+    background-color: white;
     margin: 40px auto;
+    border: 1px solid #d5d5d5;
 }
 
-tr, td, th, table{
+tr, td, th{
     border-collapse: collapse;
     padding: 10px;
 }
 
+/* annee universitaire */
+.admin-annee{
+    text-align: right;
+     margin-bottom: 10px
+}
+
+
+#downloadBtn {
+    background-color: #007BFF; 
+    color: white; 
+    border: none; 
+    padding: 5px; 
+    text-align: center; 
+    text-decoration: none; 
+    display: inline-block; 
+    font-size: 16px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: background-color 0.3s, transform 0.2s; 
+}
+
+#downloadBtn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px); 
+}
+
+#downloadBtn:active {
+    transform: translateY(2px);
+}
+
+#downloadBtn:focus {
+    outline: none; 
+}
+
+
+/* flashed messages */
+
+.success {
+    color: green;
+    text-align: center;
+    text-align: center;
+    list-style-type:none;
+    margin-left : -40px;
+}
+
+.error {
+    color: rgb(190, 71, 71);
+    text-align: center;
+    list-style-type:none;
+    margin-left : -40px;
+}
 
