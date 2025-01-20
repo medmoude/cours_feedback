@@ -168,6 +168,7 @@
                           <h4 class="mb-0">Envoyer la formulaire</h4>
                       </div>
                       <div class="card-body">
+                        {% if annee[3] == 'Actif'%}
                           <form method="post" action="{{url_for('envoyer_formulaire')}}">
                               <h5 class="mb-3">Sélectionnez le département auquel vous souhaitez envoyer le formulaire </h5>
                               <div class="form-group">
@@ -186,9 +187,29 @@
                                   <input type="submit" value="Envoyer" class="btn btn-primary" >
                               </div>
                           </form>
+                        {% else %}
+                          <form method="post" action="#">
+                            <h5 class="mb-3">vous ne pouve pas envoyer des email, car cette année est archivée </h5>
+                            <div class="form-group">
+                                <label for="tous_departement">
+                                    <input type="checkbox" name="tous_departement" id="tous_departement" disabled>
+                                    Selectionner tous
+                                </label> <br/>
+                                {% for departement in departements %}
+                                    <label for="departement_{{loop.index}}" class="me-4">
+                                        <input type="checkbox" name="departement" id="departement_{{loop.index}}" value="{{departement[1]}}" disabled>
+                                        {{departement[1]}}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <div class="mt-3">
+                                <input type="submit" value="Envoyer" class="btn btn-primary" disabled style="opacity: 0.5; pointer-events: none;">
+                            </div>
+                          </form>
+                        {% endif %}
                       </div>
                   </div>
-                  <h4></h4>
+                  
                   {% if etudiants_info %}
                   <div class="table mt-5">
                       <table>

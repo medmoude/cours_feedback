@@ -197,7 +197,6 @@ def index():
 # Login route
 @app.route("/login", methods=["POST", "GET"])
 def login():
-
     if user_logged_in():
         return redirect(url_for('index'))
     
@@ -280,6 +279,7 @@ def changer_mot_de_pass():
                     query = "UPDATE etudiants SET mot_de_pass = %s WHERE matricule = %s "
                     cur.execute(query,(nouveau_mot_de_pass, session['user_id']))
                     mysql.connection.commit()
+                    cur.close()
                     flash('Le mot de passe a été changé avec succès', 'success')
                     
                 else:
@@ -290,7 +290,7 @@ def changer_mot_de_pass():
                 flash('le mot de passe est incorrete', 'error')
                 return render_template('changer_mot_de_pass.html')
 
-        return render_template ('changer_mot_de_pass.html')
+        return render_template('changer_mot_de_pass.html')
     
     return redirect(url_for('login'))
 
@@ -457,37 +457,28 @@ def insert_formulaire(cours_code):
     return redirect(url_for('login'))
 
 
-@app.route("/check_timer_status")
-def check_timer_status():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT terminee FROM miniteur ORDER BY date_lancement DESC LIMIT 1")
-    miniteur = cur.fetchone()
-    cur.close()
-
-    if miniteur:
-        return jsonify({"terminee": miniteur[0]})
-    return jsonify({"terminee": 0})
-
-
 ######################################
        ### ADMIN ROUTES ###
 ######################################
 @app.route("/set_miniteur", methods = ['POST', 'GET'])
 def set_miniteur():
-    cur = mysql.connection.cursor()
-    if request.method == 'POST':
-        duree = request.form['duree']
-        lib_annee_univ = session['annee_univ']
+    if admin_logged_in():
+        cur = mysql.connection.cursor()
+        if request.method == 'POST':
+            duree = request.form['duree']
+            lib_annee_univ = session['annee_univ']
 
-        if duree :
-            cur.execute("""
-                        INSERT INTO miniteur (duree_miniteur, lib_annee_univ) 
-                        VALUES (%s, %s)
-                        """, (duree, lib_annee_univ))
-            mysql.connection.commit()
-            cur.close()
+            if duree :
+                cur.execute("""
+                            INSERT INTO miniteur (duree_miniteur, lib_annee_univ) 
+                            VALUES (%s, %s)
+                            """, (duree, lib_annee_univ))
+                mysql.connection.commit()
+                cur.close()
 
-            return redirect(url_for('parametres'))
+                return redirect(url_for('parametres'))
+    
+    return redirect(url_for('login'))
 
 
 @app.route("/visualisation")
@@ -771,6 +762,7 @@ def modifier_section(id_section):
             return redirect(url_for('ajouter_section'))
 
         return redirect(url_for('modifier_section_informations', id_section=id_section))
+    
     return redirect(url_for('login'))
 
 

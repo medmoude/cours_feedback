@@ -31,7 +31,7 @@ tr, td, th{
 }
 
 
-#downloadBtn {
+.downloadBtn {
     background-color: #007BFF; 
     color: white; 
     border: none;
@@ -48,16 +48,16 @@ tr, td, th{
     transition: background-color 0.3s, transform 0.2s; 
 }
 
-#downloadBtn:hover {
+.downloadBtn:hover {
     background-color: #0056b3;
     transform: translateY(-2px); 
 }
 
-#downloadBtn:active {
+.downloadBtn:active {
     transform: translateY(2px);
 }
 
-#downloadBtn:focus {
+.downloadBtn:focus {
     outline: none; 
 }
 

@@ -110,6 +110,7 @@ terminee BOOLEAN DEFAULT FALSE,
 date_lancement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Insertion des données 
 INSERT INTO niveau (intitulé_niv) VALUES
 ("L1"), ("L2"), ("L3");
@@ -228,7 +229,7 @@ SELECT * FROM question;
 SELECT * FROM reponse;
 SELECT * FROM commentaire;
 SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC;
-SELECT * FROM miniteur;
+SELECT * FROM miniteur ORDER BY date_lancement DESC LIMIT 1;
 
 
 

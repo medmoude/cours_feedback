@@ -176,14 +176,14 @@
                   <!--Histogramme-->
                   <div class="histogramme">
                     <h4>La pourcentage des évaluations des cours</h4>
-                    <button id="downloadBtn">Télécharger</button>
+                    <button class="downloadBtn" id="downloadBtn1">Télécharger</button>
                     <canvas id="evaluationChart" ></canvas>
                   </div>
 
                   <!--Radar-->
                   <div class="radar">
                     <h4>la radar des données</h4>
-                    <button id="downloadBtn">Télécharger</button>
+                    <button class="downloadBtn" id="downloadBtn2">Télécharger</button>
                     <canvas id="evaluationChart2" ></canvas>
                   </div>
 
@@ -318,7 +318,7 @@
               plugins: [percentagePlugin] // Add the custom plugin
           });
   
-          document.getElementById('downloadBtn').addEventListener('click', function () {
+          document.getElementById('downloadBtn1').addEventListener('click', function () {
               const imageUrl = chart.toBase64Image(); 
               const link = document.createElement('a'); 
               link.href = imageUrl;
@@ -393,7 +393,7 @@
               }
           });
 
-          document.getElementById('downloadBtn').addEventListener('click', function () {
+          document.getElementById('downloadBtn2').addEventListener('click', function () {
               const imageUrl = chart.toBase64Image(); 
               const link = document.createElement('a'); 
               link.href = imageUrl;

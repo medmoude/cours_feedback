@@ -280,13 +280,20 @@
                 <div class="container mt-2">
                   <div class="card shadow">
                     <div class="card-header ">
-                      <h4>Le miniteurr</h4>
+                      <h4>Le miniteur</h4>
                     </div>
                     <div class="card-body">
-                      <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
-                        <input type="number" name="duree" placeholder="durée en heure" >
-                        <input type="submit" value="Démarrer" class="btn btn-secondary">
-                      </form>
+                      {% if annee[3] == 'Actif' %}
+                        <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
+                          <input type="number" name="duree" placeholder="durée en heure" >
+                          <input type="submit" value="Démarrer" class="btn btn-primary">
+                        </form>
+                      {% else %}
+                        <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
+                          <input type="number" name="duree" placeholder="durée en heure" disabled>
+                          <input type="submit" value="Démarrer" class="btn btn-primary" style="opacity: 0.5; pointer-events: none;">
+                        </form>
+                      {% endif %}
                     </div>
                   </div>
                 </div>

@@ -211,17 +211,19 @@
                   remainingTime--;
               } else {
                   clearInterval(intervalId); 
-                  localStorage.setItem('timerFinished', 'true');
-                  for (let i= 0; i <= 3 ; i++){
+                  for (let i= 0; i <= 5 ; i++){
                     location.reload();
                   }
+                  localStorage.setItem('timerFinished', 'true');
                  
               }
           }
-        }
-          
+
           updateTimer(); // Initial update
           intervalId = setInterval(updateTimer, 1000);  // Start the countdown timer
+        }
+          
+          
       }
       
       document.addEventListener("DOMContentLoaded", startCountdown);
