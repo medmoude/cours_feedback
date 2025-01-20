@@ -173,10 +173,20 @@
                       </tr>
                       {% endfor %}
                   </table>
+                  <!--Histogramme-->
+                  <div class="histogramme">
+                    <h4>La pourcentage des évaluations des cours</h4>
+                    <button id="downloadBtn">Télécharger</button>
+                    <canvas id="evaluationChart" ></canvas>
+                  </div>
 
-                  <h4>la moyenne des évaluations des cours</h4>
-                  <button id="downloadBtn">Télécharger le graphe</button>
-                  <canvas id="evaluationChart" ></canvas>
+                  <!--Radar-->
+                  <div class="radar">
+                    <h4>la radar des données</h4>
+                    <button id="downloadBtn">Télécharger</button>
+                    <canvas id="evaluationChart2" ></canvas>
+                  </div>
+
                 {% else %}
                   <h1>pas de visualisation pour cette année</h1>
                 {% endif %}
@@ -245,14 +255,14 @@
                   labels: sortedLabels, // Use the sorted labels
                   datasets: [
                       {
-                          label: 'moyenne des évaluations',
+                          label: 'la pourcentages des évaluations',
                           data: sortedScores, // Use the sorted scores
                           backgroundColor: '#1E90FF',
                           borderColor: 'rgba(244, 244, 244, 1)',
                           borderWidth: 1
                       },
                       {
-                          label: 'ligne à ' + seuil,
+                          label: 'Seuil à ' + seuil + "%",
                           data: Array(sortedScores.length).fill(seuil), // The value for the horizontal line
                           borderColor: 'orange', // Color for the horizontal line
                           borderWidth: 2,
@@ -318,8 +328,81 @@
       });
     </script>
   
-    
-  
+    <!--radar chart-->
+    <script>
+      fetch("/chart-data")
+      .then(response => response.json())
+      .then(data => {
+          const labels = data.map(item => item[0]); // Extract the labels (categories)
+          const scores = data.map(item => Number(item[1])); // Extract the scores (ensure they're numbers)
+
+          const ctx = document.getElementById('evaluationChart2').getContext('2d');
+
+          const chart = new Chart(ctx, {
+              type: 'radar', // Specify the chart type as "radar"
+              data: {
+                  labels: labels, // Categories for the radar chart (e.g., names or criteria)
+                  datasets: [
+                      {
+                          label: 'Évaluations (%)', // Label for the dataset
+                          color: "black",
+                          data: scores, // The actual scores
+                          backgroundColor: 'rgba(30, 144, 255, 0.2)', // Translucent fill color
+                          borderColor: '#1E90FF', // Border color for the dataset
+                          borderWidth: 2, // Border width
+                          pointBackgroundColor: '#1E90FF', // Color of data points
+                      }
+                  ]
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      tooltip: {
+                          callbacks: {
+                              label: function(tooltipItem) {
+                                  return tooltipItem.raw + '%'; // Add % sign in tooltips
+                              }
+                          }
+                      },
+                      legend: {
+                          labels: {
+                              color: 'black' // Legend text color
+                          }
+                      }
+                  },
+                  scales: {
+                      r: { // Radial axis (specific to radar charts)
+                          angleLines: {
+                              color: 'rgba(200, 200, 200, 0.3)' // Lines radiating from the center
+                          },
+                          grid: {
+                              color: 'rgba(200, 200, 200, 0.3)' // Circular grid lines
+                          },
+                          ticks: {
+                              display: true,
+                              color: 'black',
+                              backdropColor: 'transparent', // Removes the tick label background
+                              callback: function(value) {
+                                  return value + '%'; // Append % sign to radial ticks
+                              }
+                          },
+                          suggestedMin: 0, // Minimum value for the radial scale
+                          suggestedMax: 100 // Maximum value for the radial scale
+                      }
+                  }
+              }
+          });
+
+          document.getElementById('downloadBtn').addEventListener('click', function () {
+              const imageUrl = chart.toBase64Image(); 
+              const link = document.createElement('a'); 
+              link.href = imageUrl;
+              link.download = 'evaluation-radar-chart.png'; 
+              link.click(); 
+          });
+      });
+    </script>
+
   
     
     <!-- jQuery Scrollbar -->

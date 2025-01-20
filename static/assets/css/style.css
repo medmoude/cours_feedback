@@ -1,5 +1,21 @@
 /* Les cours */
 
+#miniteur{
+    color: white;
+    background-color: #333333;
+    padding: 7px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    max-width: 300px
+}
+
+.terminee{
+    color: #333333;
+    font-weight: bold;
+    margin-top: 15%;
+    margin-left: 20%;
+}
+
 p:has(strong#timer){
     background-color: rgb(64, 53, 119);
     color: white;

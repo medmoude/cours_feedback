@@ -105,8 +105,9 @@ CREATE TABLE commentaire (
 CREATE TABLE miniteur(
 id_miniteur INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 duree_miniteur INT NOT NULL,
+lib_annee_univ VARCHAR(50) NOT NULL,
 terminee BOOLEAN DEFAULT FALSE,
-lib_annee_univ VARCHAR(50) NOT NULL
+date_lancement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insertion des données 
@@ -227,6 +228,8 @@ SELECT * FROM question;
 SELECT * FROM reponse;
 SELECT * FROM commentaire;
 SELECT * FROM annee_universitaire ORDER BY lib_annee_univ DESC;
+SELECT * FROM miniteur;
+
 
 
 
@@ -265,5 +268,4 @@ JOIN section ON question.id_section = section.id_section
 WHERE lib_annee_univ = "2024-2025" ;
 
 
-
-
+SELECT matricule, nom_prenom, email, mot_de_pass, lib_annee_univ FROM etudiants where matricule = "23612";

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, request, url_for, flash, session, jsonify, make_response
 from flask_mysqldb import MySQL
 from MySQLdb._exceptions import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import openpyxl
 import time
@@ -76,9 +76,32 @@ def validate_annee_universitaire(annee_universitaire):
 @app.route("/")
 def index():
     if user_logged_in():
-        
-        #traitement des semestres impaires
+        #Miniteur
         cur = mysql.connection.cursor()
+
+        # Get the latest miniteur
+        cur.execute("SELECT * FROM miniteur ORDER BY date_lancement DESC LIMIT 1")
+        miniteur = cur.fetchone()
+
+        if miniteur:
+            miniteur_id = miniteur[0]
+            duree = miniteur[1]
+            launch_time = miniteur[4]
+            terminee = miniteur[3]
+
+            # Calculate remaining time in seconds
+            end_time = launch_time + timedelta(seconds= duree)
+            remaining_time = max((end_time - datetime.now()).total_seconds(), 0)
+
+            # If time is up, set 'terminee' to 0 in the database
+            if remaining_time == 0 :
+                cur.execute("UPDATE miniteur SET terminee = TRUE WHERE id_miniteur = %s", (miniteur_id,))
+                mysql.connection.commit()
+
+        else:
+            remaining_time = 0
+
+        #traitement des semestres impaires
         query_sem_impaire = """
         SELECT cours_code, intitulé_cours
         FROM etudiants
@@ -87,6 +110,7 @@ def index():
         JOIN semestre ON niveau.code_niv = semestre.code_niv
         JOIN cours ON semestre.code_sem = cours.code_sem
         WHERE etudiants.matricule = %s
+        AND etudiants.lib_annee_univ = %s
         AND semestre.code_sem IN (1, 3, 5)
         AND (
             niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
@@ -103,7 +127,7 @@ def index():
             sea_pattern = "SEA%"
             sdid_pattern = "SDID%"
             
-            cur.execute(query_sem_impaire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+            cur.execute(query_sem_impaire, (session['user_id'], miniteur[2], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
             cours_sem_impaire = cur.fetchall()
         else:
             cours_sem_impaire = []
@@ -117,6 +141,7 @@ def index():
         JOIN semestre ON niveau.code_niv = semestre.code_niv
         JOIN cours ON semestre.code_sem = cours.code_sem
         WHERE etudiants.matricule = %s
+        AND etudiants.lib_annee_univ = %s
         AND semestre.code_sem IN (2, 4, 6)
         AND (
             niveau.intitulé_niv = 'L1'  -- Filter for L1 level students
@@ -129,11 +154,11 @@ def index():
         );
         """
 
-        if session['user_id']:  # Ensure the user_id is set
+        if session['user_id']: 
             sea_pattern = "SEA%"
             sdid_pattern = "SDID%"
             
-            cur.execute(query_sem_paire, (session['user_id'], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
+            cur.execute(query_sem_paire, (session['user_id'], miniteur[2], sea_pattern, "SDID%", sdid_pattern, "SEA%"))
             cours_sem_paire = cur.fetchall()
         else:
             cours_sem_paire = []
@@ -150,9 +175,21 @@ def index():
         
         mois = datetime.now().month
         if mois in [10, 11, 12, 1, 2]:
-            return render_template("index.html", cours=cours_sem_impaire, evaluated_courses=evaluated_courses)
+            return render_template("index.html",
+                                    cours=cours_sem_impaire,
+                                    evaluated_courses=evaluated_courses,
+                                    miniteur = miniteur,
+                                    remaining_time = remaining_time,
+                                    terminee = terminee
+                                    )
         else:
-            return render_template("index.html", cours=cours_sem_paire, evaluated_courses=evaluated_courses)
+            return render_template("index.html", 
+                                    cours=cours_sem_paire,
+                                    evaluated_courses=evaluated_courses, 
+                                    miniteur = miniteur,
+                                    remaining_time = remaining_time,
+                                    terminee = terminee
+                                    )
         
     return redirect(url_for('login'))
 
@@ -419,11 +456,40 @@ def insert_formulaire(cours_code):
             return redirect(url_for('login'))
     return redirect(url_for('login'))
 
-    
+
+@app.route("/check_timer_status")
+def check_timer_status():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT terminee FROM miniteur ORDER BY date_lancement DESC LIMIT 1")
+    miniteur = cur.fetchone()
+    cur.close()
+
+    if miniteur:
+        return jsonify({"terminee": miniteur[0]})
+    return jsonify({"terminee": 0})
+
 
 ######################################
        ### ADMIN ROUTES ###
 ######################################
+@app.route("/set_miniteur", methods = ['POST', 'GET'])
+def set_miniteur():
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        duree = request.form['duree']
+        lib_annee_univ = session['annee_univ']
+
+        if duree :
+            cur.execute("""
+                        INSERT INTO miniteur (duree_miniteur, lib_annee_univ) 
+                        VALUES (%s, %s)
+                        """, (duree, lib_annee_univ))
+            mysql.connection.commit()
+            cur.close()
+
+            return redirect(url_for('parametres'))
+
+
 @app.route("/visualisation")
 def visualisation():
     if admin_logged_in():

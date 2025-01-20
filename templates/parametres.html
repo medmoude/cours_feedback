@@ -283,8 +283,8 @@
                       <h4>Le miniteurr</h4>
                     </div>
                     <div class="card-body">
-                      <form class=" d-flex text-center ">
-                        <input type="number" placeholder="durée en heure" >
+                      <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
+                        <input type="number" name="duree" placeholder="durée en heure" >
                         <input type="submit" value="Démarrer" class="btn btn-secondary">
                       </form>
                     </div>

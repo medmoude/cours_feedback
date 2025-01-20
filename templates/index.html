@@ -124,29 +124,35 @@
               </ul>
             </div>
             <!--page category-->
-            <div class="page-category">
+            <div class="page-category" style="position: relative;">
               <p>Bienvenue, {{session['user_nom_prenom']}} </p>
-              <!-- Display countdown time dynamically -->
-              <h2>Les questionnaires</h2>
-              <table class="cours-table">
-                  <tr>
-                      <th>Titre du cours</th>
-                      <th>Statut d'évaluation</th>
-                  </tr>
-                  {% for cour in cours %}
-                  <tr>
-                      <td>{{ cour[1] }}</td>
-                      <td>
-                      {% if cour[0] in evaluated_courses %}
-                        <button class="button_remplire disabled">Évalué</button>
-                      {% else %}
-                        <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
-                      {% endif %}
-                      </td>
-                  </tr>
-                  {% endfor %}
-              </table>
-
+              <div id="miniteur">
+                Temps restant : 
+                <span id="countdown-timer"></span>
+              </div>  
+              {% if terminee == 0 %}
+                <h2>Les questionnaires</h2>
+                <table class="cours-table">
+                    <tr>
+                        <th>Titre du cours</th>
+                        <th>Statut d'évaluation</th>
+                    </tr>
+                    {% for cour in cours %}
+                    <tr>
+                        <td>{{ cour[1] }}</td>
+                        <td>
+                        {% if cour[0] in evaluated_courses %}
+                          <button class="button_remplire disabled">Évalué</button>
+                        {% else %}
+                          <button class="button_remplire"><a href="/formulaire_cours/{{ cour[0] }}">Remplir le questionnaire</a></button>
+                        {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+              {% else %}
+                <h5 class="terminee">le temps de remplir le questionnaire c'est terminée</h5>
+              {% endif %}
             </div>
             <!-- end page category -->
           </div>
@@ -172,5 +178,61 @@
     <!-- Kaiadmin JS -->
     <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
     
+    <script>
+      let intervalId;
+
+      // Function to format the time
+      function formatTime(seconds) {
+          const hours = Math.floor(seconds / 3600); // Calculate hours
+          const mins = Math.floor((seconds % 3600) / 60); // Calculate minutes
+          const secs = Math.floor(seconds % 60); // Calculate seconds
+
+          // Format time with padding for single digits
+          return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      // Countdown timer logic
+      let remainingTime = {{ remaining_time | safe }};
+      let miniteur = document.getElementById('miniteur');
+
+      if (remainingTime > 0) { 
+        localStorage.removeItem('timerFinished'); 
+      }
+
+      function startCountdown() {
+          const countdownElement = document.getElementById("countdown-timer");
+
+          if (!countdownElement) return;
+
+          if (!localStorage.getItem('timerFinished')){
+          function updateTimer() {
+              if (remainingTime > 0) {
+                  countdownElement.innerText = formatTime(remainingTime);
+                  remainingTime--;
+              } else {
+                  clearInterval(intervalId); 
+                  localStorage.setItem('timerFinished', 'true');
+                  for (let i= 0; i <= 3 ; i++){
+                    location.reload();
+                  }
+                 
+              }
+          }
+        }
+          
+          updateTimer(); // Initial update
+          intervalId = setInterval(updateTimer, 1000);  // Start the countdown timer
+      }
+      
+      document.addEventListener("DOMContentLoaded", startCountdown);
+
+      if (localStorage.getItem('timerFinished')) {
+           miniteur.style.display = 'none';
+          console.log("Timer has finished. No further reloads needed.");
+      }
+
+
+    </script>
+  
   </body>
 </html>
