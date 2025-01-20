@@ -278,15 +278,20 @@
 
                 <!--Le miniteur-->
                 <div class="container mt-2">
-                  <div class="card shadow">
+                  <div class="card shadow" style="position: relative; ">
                     <div class="card-header ">
                       <h4>Le miniteur</h4>
                     </div>
                     <div class="card-body">
                       {% if annee[3] == 'Actif' %}
-                        <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
+                        <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post" >
                           <input type="number" name="duree" placeholder="durée en heure" >
                           <input type="submit" value="Démarrer" class="btn btn-primary">
+
+                          <div id="miniteur" style="position: absolute; right: 10px; top: 5px">
+                            Temps restant : 
+                            <span id="countdown-timer"></span>
+                          </div>
                         </form>
                       {% else %}
                         <form class=" d-flex text-center" action="{{url_for('set_miniteur')}}" method="post">
@@ -326,5 +331,59 @@
 
     <!-- Kaiadmin JS -->
     <script src="{{ url_for('static', filename = 'assets/js/kaiadmin.min.js') }}"></script>
+
+    <script>
+      let intervalId;
+
+      // Function to format the time
+      function formatTime(seconds) {
+          const hours = Math.floor(seconds / 3600); // Calculate hours
+          const mins = Math.floor((seconds % 3600) / 60); // Calculate minutes
+          const secs = Math.floor(seconds % 60); // Calculate seconds
+
+          // Format time with padding for single digits
+          return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      // Countdown timer logic
+      let remainingTime = {{ remaining_time | safe }};
+      let miniteur = document.getElementById('miniteur');
+
+      if (remainingTime > 0) { 
+        localStorage.removeItem('timerFinished'); 
+      }
+
+      function startCountdown() {
+          const countdownElement = document.getElementById("countdown-timer");
+
+          if (!countdownElement) return;
+
+          if (!localStorage.getItem('timerFinished')){
+          function updateTimer() {
+              if (remainingTime > 0) {
+                  countdownElement.innerText = formatTime(remainingTime);
+                  remainingTime--;
+              } else {
+                  clearInterval(intervalId); 
+                  location.reload();
+                  localStorage.setItem('timerFinished', 'true');
+                 
+              }
+          }
+
+          updateTimer(); // Initial update
+          intervalId = setInterval(updateTimer, 1000);  // Start the countdown timer
+        }
+          
+          
+      }
+      
+      document.addEventListener("DOMContentLoaded", startCountdown);
+
+      if (localStorage.getItem('timerFinished')) {
+           miniteur.style.display = 'none';
+          console.log("Timer has finished. No further reloads needed.");
+      }
+    </script>
   </body>
 </html>

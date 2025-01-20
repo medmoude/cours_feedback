@@ -172,7 +172,7 @@
                     <input type="file" name="promotion-file" id="promotion-file" disabled>
                     <button type="submit" style="opacity: 0.5; pointer-events: none;" disabled >Ajouter</button> <br> <br>
                   </form>
-                  {% if annee[3] != 'Archivée' %}
+                  {% if annee[3] != 'Archivée' and etudiants %}
                     <form class="seul-etudiant" action="{{url_for('ajouter_etudiant')}}" method="post">
                       <h4>Ajouter un etudiant</h4>
                       <input type="number" name="matricule" placeholder="Matricule" min="0" required> <br>

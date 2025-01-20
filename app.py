@@ -80,7 +80,7 @@ def index():
         cur = mysql.connection.cursor()
 
         # Get the latest miniteur
-        cur.execute("SELECT * FROM miniteur ORDER BY date_lancement DESC LIMIT 1")
+        cur.execute("SELECT * FROM miniteur WHERE lib_annee_univ = %s ORDER BY date_lancement DESC LIMIT 1",(session['annee_univ'],))
         miniteur = cur.fetchone()
 
         if miniteur:
@@ -90,7 +90,7 @@ def index():
             terminee = miniteur[3]
 
             # Calculate remaining time in seconds
-            end_time = launch_time + timedelta(seconds= duree)
+            end_time = launch_time + timedelta(minutes= duree)
             remaining_time = max((end_time - datetime.now()).total_seconds(), 0)
 
             # If time is up, set 'terminee' to 0 in the database
@@ -220,7 +220,10 @@ def login():
 
         # Verify if the email of the user exists
         cur = mysql.connection.cursor()
-        cur.execute("SELECT matricule, nom_prenom, email, mot_de_pass, lib_annee_univ FROM etudiants WHERE email = %s ",
+        cur.execute("""
+                    SELECT matricule, nom_prenom, email, mot_de_pass, lib_annee_univ FROM etudiants 
+                    WHERE email = %s ORDER BY lib_annee_univ DESC LIMIT 1
+                    """,
                     (email,))
         user = cur.fetchone()
 
@@ -434,24 +437,29 @@ def insert_formulaire(cours_code):
             else:
                 total_percentage = 0
             
-            
-            cur = mysql.connection.cursor()
-            cur.execute("""
-                INSERT INTO evaluer (evaluation, matricule, cours_code, lib_annee_univ) 
-                VALUES (%s, %s, %s, %s)
-            """, (total_percentage, matricule, cours_code, session['annee_univ'])) 
-            mysql.connection.commit()
-
-            for commentaire in commentaires:
+            try:
+                cur = mysql.connection.cursor()
                 cur.execute("""
-                    INSERT INTO commentaire (lib_commentaire, matricule, cours_code)
-                    VALUES (%s, %s, %s) 
-                """, (commentaire, matricule, cours_code))
-            mysql.connection.commit()
+                    INSERT INTO evaluer (evaluation, matricule, cours_code, lib_annee_univ) 
+                    VALUES (%s, %s, %s, %s)
+                """, (total_percentage, matricule, cours_code, session['annee_univ'])) 
+                mysql.connection.commit()
 
-            cur.close()
+                for commentaire in commentaires:
+                    cur.execute("""
+                        INSERT INTO commentaire (lib_commentaire, matricule, cours_code)
+                        VALUES (%s, %s, %s) 
+                    """, (commentaire, matricule, cours_code))
+                mysql.connection.commit()
 
-            return redirect(url_for('index')) 
+                cur.close()
+                flash("votre évaluation a été enregistrée avec succées ","success")
+
+            except Exception as e:
+                flash("le cours a été déjà évaluée ", "error")
+
+            return redirect(url_for('index'))
+         
         else:
             return redirect(url_for('login'))
     return redirect(url_for('login'))
@@ -830,11 +838,24 @@ def ajouter_promotion():
                         matricule = row.get('matricule', None)
                         nom_prenom = row.get('nom_prenom', None)
                         email = row.get('email', None)
-                        mot_de_pass = generate_password(8)
-                        intitulé_dep = row.get('intitulé_dep', None)
 
+                        #Don't change the password of the student if he already exists     
+                        cur = mysql.connection.cursor()
+                        cur.execute("""
+                                    SELECT mot_de_pass FROM etudiants WHERE matricule = %s 
+                                    ORDER BY lib_annee_univ DESC LIMIT 1
+                                    """,(matricule,))
+                        ancien_mot_de_pass = cur.fetchone()
+
+                        if ancien_mot_de_pass:
+                            mot_de_pass = ancien_mot_de_pass[0]
+                        else:
+                            mot_de_pass = generate_password(8)
+
+                        intitulé_dep = row.get('intitulé_dep', None)
+                        
+                        #insert the student in the database
                         try:
-                            cur = mysql.connection.cursor()
                             query = """
                                     INSERT INTO etudiants (matricule, nom_prenom, email, mot_de_pass, intitulé_dep, lib_annee_univ) 
                                     VALUES (%s, %s, %s, %s, %s, %s)
@@ -915,7 +936,31 @@ def envoyer_formulaire():
 @app.route("/parametres", methods = ['POST', 'GET'])
 def parametres():
     if admin_logged_in():
+        #Miniteur
         cur = mysql.connection.cursor()
+
+        # Get the latest miniteur
+        cur.execute("SELECT * FROM miniteur WHERE lib_annee_univ = %s ORDER BY date_lancement DESC LIMIT 1",(session['annee_univ'],))
+        miniteur = cur.fetchone()
+
+        if miniteur:
+            miniteur_id = miniteur[0]
+            duree = miniteur[1]
+            launch_time = miniteur[4]
+            terminee = miniteur[3]
+
+            # Calculate remaining time in seconds
+            end_time = launch_time + timedelta(minutes= duree)
+            remaining_time = max((end_time - datetime.now()).total_seconds(), 0)
+
+            # If time is up, set 'terminee' to 0 in the database
+            if remaining_time == 0 :
+                cur.execute("UPDATE miniteur SET terminee = TRUE WHERE id_miniteur = %s", (miniteur_id,))
+                mysql.connection.commit()
+
+        else:
+            remaining_time = 0
+
         cur.execute("SELECT * FROM annee_universitaire")
         annees = cur.fetchall()
         cur.execute("SELECT * FROM section WHERE lib_annee_univ = %s ",(session['annee_univ'],))
@@ -925,7 +970,11 @@ def parametres():
         cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ",(session['annee_univ'],))
         annee = cur.fetchone()
         cur.close()
-        return render_template("parametres.html", annees = annees, sections = sections, annee = annee)
+        return render_template("parametres.html", 
+                               annees = annees, 
+                               sections = sections, 
+                               annee = annee, 
+                               remaining_time = remaining_time)
     
     return redirect(url_for('login'))
 
