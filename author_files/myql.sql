@@ -2,6 +2,7 @@
 CREATE DATABASE feedback_cours;
 USE feedback_cours;
 
+
 CREATE TABLE niveau (
 code_niv INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 intitulé_niv VARCHAR(50) NOT NULL
@@ -221,7 +222,7 @@ SELECT * FROM niveau;
 SELECT * FROM departement;
 SELECT * FROM semestre;
 SELECT * FROM cours ORDER BY code_sem;
-SELECT * FROM etudiants WHERE matricule = "23618@isms.esp.mr" order by (lib_annee_univ) DESC;
+SELECT * FROM etudiants order by (lib_annee_univ) DESC;
 SELECT * FROM evaluer;
 SELECT * FROM images;
 SELECT * FROM section;
