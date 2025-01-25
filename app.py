@@ -233,6 +233,12 @@ def login():
             session['admin_id'] = 'admin'
             return render_template('promp_annee_univ.html', annees = annees)
 
+
+        if '@' in email:
+            email = email
+        else:
+            email = email+"@isms.esp.mr"
+            
         # Verify if the email of the user exists
         cur = mysql.connection.cursor()
         cur.execute("""
@@ -263,18 +269,24 @@ def login():
 # Logout route (users)
 @app.route("/logout")
 def logout():
-    session.pop("user_id", None)
-    session.pop("annee_univ", None)
-    session.pop("user_nom_prenom", None)
+    if user_logged_in():
+        session.pop("user_id", None)
+        session.pop("annee_univ", None)
+        session.pop("user_nom_prenom", None)
+        return redirect(url_for('login'))
+    
     return redirect(url_for('login'))
 
 
 #Logout route (admin)
 @app.route("/logout_admin")
 def logout_admin():
-    session.pop("admin_id", None)
-    session.pop("annee_univ", None)
-    session.pop("annees_univs", None)
+    if admin_logged_in():
+        session.pop("admin_id", None)
+        session.pop("annee_univ", None)
+        session.pop("annees_univs", None)
+        return redirect(url_for('login'))
+    
     return redirect(url_for('login'))
 
 
