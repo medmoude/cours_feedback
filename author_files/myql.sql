@@ -273,3 +273,6 @@ WHERE lib_annee_univ = "2024-2025" ;
 
 
 SELECT matricule, nom_prenom, email, mot_de_pass, lib_annee_univ FROM etudiants where matricule = "23612";
+
+SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN (1, 3, 5)
+                        ORDER BY intitulé_dep;

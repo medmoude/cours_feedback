@@ -1,0 +1,20 @@
+#import some libraries for email 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Email credentials
+smtp_server = "smtp.gmail.com"
+smtp_port = 587
+sender_email = "23618@isms.esp.mr"
+password = ""
+
+
+app = Flask(__name__)
+app.secret_key = "medmoud"
+
+#mysql configuration
+app.config["MYSQL_HOST"] = "localhost"
+app.config["MYSQL_USER"] = "root"
+app.config["MYSQL_PASSWORD"] = ""
+app.config["MYSQL_DB"] = "feedback_cours"

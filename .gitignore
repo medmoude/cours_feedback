@@ -1,0 +1,18 @@
+
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+venv/
+ENV/
+
+# Ignore database migrations (optional)
+migrations/
+
+# Ignore IDE-specific files (optional)
+.vscode/
+.idea/

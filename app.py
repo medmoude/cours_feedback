@@ -11,15 +11,30 @@ from werkzeug.utils import secure_filename
 import string
 import secrets 
 
+#import some libraries for email 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "medmoud"
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
-#mysql configuration
-app.config["MYSQL_HOST"] = "localhost"
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "admin"
-app.config["MYSQL_DB"] = "feedback_cours"
+# MySQL configuration
+app.config["MYSQL_HOST"] = os.getenv('MYSQL_HOST')
+app.config["MYSQL_USER"] = os.getenv('MYSQL_USER')
+app.config["MYSQL_PASSWORD"] = os.getenv('MYSQL_PASSWORD')
+app.config["MYSQL_DB"] = os.getenv('MYSQL_DB')
+
+# Email configuration
+smtp_server = os.getenv('SMTP_SERVER')
+smtp_port = int(os.getenv('SMTP_PORT'))
+sender_email = os.getenv('SENDER_EMAIL')
+password = os.getenv('EMAIL_PASSWORD')
+
 
 #file uploads configuration
 app.config['UPLOAD_FOLDER'] = 'static/uploads' 
@@ -924,10 +939,38 @@ def envoyer_formulaire():
 
         if request.method == 'POST':
             departements_selectionnees = request.form.getlist('departement')
-            cur.execute("""SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
-                        ORDER BY intitulé_dep;""", (departements_selectionnees,))
+            cur.execute("""
+                        SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
+                        AND lib_annee_univ = %s
+                        ORDER BY intitulé_dep;
+                        """, (departements_selectionnees,session['annee_univ']))
             etudiants_info = cur.fetchall()
         cur.close()
+
+        #sending the emails to students
+        # List of recipients
+        recipient_list = etudiants_info
+        if recipient_list :
+            for recipient in recipient_list :
+                
+                # Create email content
+                message = MIMEMultipart()
+                message["From"] = sender_email
+                message["Subject"] = "Test Email"
+                message.attach(MIMEText(f"{recipient[1]}, is your password to access our website .", "plain"))
+
+                # Send email
+                try:
+                    with smtplib.SMTP(smtp_server, smtp_port) as server:
+                        server.starttls()  # Secure the connection
+                        server.login(sender_email, password)
+                        
+                        message["To"] = recipient[0]
+                        server.sendmail(sender_email, recipient[0], message.as_string())
+                        print(f"Email sent successfully to {recipient[0]}")
+                except Exception as e:
+                    print(f"Failed to send email: {e}")
+                
         return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info, annee = annee)
 
     return redirect(url_for('login'))
@@ -1186,8 +1229,6 @@ def changer_annee_univ():
         return redirect(url_for('parametres'))
     
     return redirect(url_for('login'))
-
-
 
 
 if __name__ == "__main__":
