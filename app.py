@@ -936,56 +936,76 @@ def ajouter_etudiant():
     return redirect(url_for('login'))
 
 
-@app.route("/envoyer_formulaire" , methods = ['GET', 'POST'])
+@app.route("/envoyer_formulaire", methods=['GET', 'POST'])
 def envoyer_formulaire():
     if admin_logged_in():
+        # Fetch all departments
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM departement ")
+        cur.execute("SELECT * FROM departement")
         departements = cur.fetchall()
 
-
-        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s ", (session['annee_univ'],))
+        # Fetch the academic year from the session
+        cur.execute("SELECT * FROM annee_universitaire WHERE lib_annee_univ = %s", (session['annee_univ'],))
         annee = cur.fetchone()
         
         etudiants_info = []
 
         if request.method == 'POST':
+            # Get the selected departments from the form
             departements_selectionnees = request.form.getlist('departement')
             cur.execute("""
-                        SELECT email, mot_de_pass, intitulé_dep FROM etudiants WHERE intitulé_dep IN %s
-                        AND lib_annee_univ = %s
+                        SELECT email, mot_de_pass, intitulé_dep FROM etudiants 
+                        WHERE intitulé_dep IN %s AND lib_annee_univ = %s
                         ORDER BY intitulé_dep;
-                        """, (departements_selectionnees,session['annee_univ']))
+                        """, (departements_selectionnees, session['annee_univ']))
             etudiants_info = cur.fetchall()
         cur.close()
+        
+        print(etudiants_info)
+        # # Sending emails to students
+        # recipient_list = etudiants_info 
+        # if recipient_list:
+        #     for recipient in recipient_list:
+        #         # Create email content
+        #         message = MIMEMultipart()
+        #         message["From"] = sender_email
+        #         message["Subject"] = "Test Email"
 
-        #sending the emails to students
-        # List of recipients
-        recipient_list = etudiants_info
-        if recipient_list :
-            for recipient in recipient_list :
-                
-                # Create email content
-                message = MIMEMultipart()
-                message["From"] = sender_email
-                message["Subject"] = "Test Email"
-                message.attach(MIMEText(f"{recipient[1]}, is your password to access our website .", "plain"))
+        #         # HTML content with recipient[1] (password) in bold
+        #         html_content = f"""
+        #             <html>
+        #             <body>
+        #                 <p>Bonjour,</p>
+        #                 <p><strong>{recipient[1]}</strong> est votre mot de passe pour accéder à notre site web.</p>
+        #                 <p>Cordialement,</p>
+        #             </body>
+        #             </html>
+        #         """
+        #         message.attach(MIMEText(html_content, "html"))
 
-                # Send email
-                try:
-                    with smtplib.SMTP(smtp_server, smtp_port) as server:
-                        server.starttls()  # Secure the connection
-                        server.login(sender_email, password)
+        #         # Send email
+        #         try:
+        #             with smtplib.SMTP(smtp_server, smtp_port) as server:
+        #                 server.starttls()  
+        #                 server.login(sender_email, password)
                         
-                        message["To"] = recipient[0]
-                        server.sendmail(sender_email, recipient[0], message.as_string())
-                        print(f"Email sent successfully to {recipient[0]}")
-                except Exception as e:
-                    print(f"Failed to send email: {e}")
-                
-        return render_template('envoyer_formulaire.html', departements = departements, etudiants_info = etudiants_info, annee = annee)
+        #                 message["To"] = recipient[0]
+        #                 server.sendmail(sender_email, recipient[0], message.as_string())
+        #                 print(f"Email sent successfully to {recipient[0]}")
+        #         except Exception as e:
+        #             print(f"Failed to send email to {recipient[0]}: {e}")
+
+        #     flash('E-mail envoyé avec succès à la liste ci-dessous.', 'success')
+
+        return render_template(
+            'envoyer_formulaire.html', 
+            departements=departements, 
+            etudiants_info=etudiants_info, 
+            annee=annee
+        )
 
     return redirect(url_for('login'))
+
 
 
 @app.route("/parametres", methods = ['POST', 'GET'])

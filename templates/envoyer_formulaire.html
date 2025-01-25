@@ -215,13 +215,11 @@
                       <table>
                           <tr>
                               <th>email</th>
-                              <th>mot de pass </th>
                               <th>departement</th>
                           </tr>
                           {% for info in etudiants_info %}
                           <tr>
                               <td>{{info[0]}}</td>
-                              <td>{{info[1]}}</td>
                               <td>{{info[2]}}</td>
                           </tr>
                           {% endfor %}
@@ -285,6 +283,20 @@
             });
         });
 
+    </script>
+
+    <script>
+                
+      setTimeout(function() {
+          var messages = document.getElementById("flashed-messages");
+          if (messages) {
+              messages.style.display = "none";
+          }
+      }, 3000); 
+
+      document.addEventListener('click', function() {
+      clearTimeout(); // Cancel any scheduled action
+      });
     </script>
   </body>
 </html>
