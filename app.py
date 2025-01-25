@@ -213,10 +213,10 @@ def index():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if user_logged_in():
-        return redirect(url_for('index'))
+        return redirect(request.referrer or url_for('index'))
     
     if admin_logged_in():
-        return redirect(url_for('visualisation'))
+        return redirect(request.referrer or url_for('visualisation'))
 
     if request.method == "POST":
         email = request.form["email"]
@@ -260,7 +260,7 @@ def login():
                 return render_template("login.html")
             
         else:
-            flash("Email introuvable", "error")
+            flash("Email ou matricule introuvable", "error")
             return render_template("login.html")
         
     return render_template("login.html")
