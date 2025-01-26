@@ -794,7 +794,7 @@ def modifier_section(id_section):
             cur.execute("UPDATE section SET lib_section = %s WHERE id_section = %s", (lib_section, id_section))
             mysql.connection.commit()
             cur.close()
-            return redirect(url_for('ajouter_section'))
+            return redirect(url_for('parametres'))
 
         return redirect(url_for('modifier_section_informations', id_section=id_section))
     
