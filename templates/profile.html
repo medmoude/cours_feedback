@@ -144,8 +144,7 @@
                     <div class="profile-sub-container">
                       <div class="profile-header">
                         {%if image%}
-                          <img src="{{ url_for('static', filename =image[2].split('static/')[1]) }}" alt="your image" id="image" width="100px" height="100px" > <br>
-                        
+                        <img src="{{ url_for('static', filename='uploads/' + image[2].split('uploads/')[1]) }}" alt="your image" id="image" width="100px" height="100px"><br>
                           <form action="{{ url_for('ajouter_image') }}" method="post" enctype="multipart/form-data">
                             <input type="file" name="image-file" id="image-file">
                             <button class="img-button" type="submit">Modifier image</button>

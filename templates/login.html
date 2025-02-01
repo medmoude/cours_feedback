@@ -7,42 +7,44 @@
     <title>Login</title>
 </head>
 <body>
-    <div class="loginBox"> 
-        <img class="user" src="https://i.ibb.co/yVGxFPR/2.png" height="100px" width="100px">
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <ul id="flashed-messages">
-                {% for category, message in messages %}
-                    <li class=" {{category}}">{{message}}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        {% endwith %}
-        
-        <br> <br>
-        <form action="{{ url_for('login') }}" method="post">
-            <div class="inputBox">
-                <input id="email" type="text" name="email" placeholder="Email ou matricule">
-                <input id="mot-de-pass" type="password" name="mot-de-pass" placeholder="Mot de passe"> 
-            </div> 
-            <input type="submit" name="" value="Se connecter">
-        </form> 
-        <a href="#"><br> </a>
-
-        <script>
+    <div class="container">
+        <div class="loginBox"> 
+            <img class="user" src="https://i.ibb.co/yVGxFPR/2.png" height="100px" width="100px">
+    
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <ul id="flashed-messages">
+                    {% for category, message in messages %}
+                        <li class=" {{category}}">{{message}}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            {% endwith %}
             
-            setTimeout(function() {
-                var messages = document.getElementById("flashed-messages");
-                if (messages) {
-                    messages.style.display = "none";
-                }
-            }, 3000); 
-
-            document.addEventListener('click', function() {
-            clearTimeout(); // Cancel any scheduled action
-            });
-        </script>
+            <br> <br>
+            <form action="{{ url_for('login') }}" method="post">
+                <div class="inputBox">
+                    <input id="email" type="text" name="email" placeholder="Email ou matricule">
+                    <input id="mot-de-pass" type="password" name="mot-de-pass" placeholder="Mot de passe"> 
+                </div> 
+                <input type="submit" name="" value="Se connecter">
+            </form> 
+            <a href="#"><br> </a>
+        </div>
     </div>
+
+    <script>
+            
+        setTimeout(function() {
+            var messages = document.getElementById("flashed-messages");
+            if (messages) {
+                messages.style.display = "none";
+            }
+        }, 3000); 
+
+        document.addEventListener('click', function() {
+        clearTimeout(); // Cancel any scheduled action
+        });
+    </script>
 </body>
 </html>
