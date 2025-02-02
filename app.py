@@ -101,12 +101,13 @@ def index():
         if miniteur:
             miniteur_id = miniteur[0]
             duree = miniteur[1]
+            duree = float(duree)
             launch_time = miniteur[4]
             terminee = miniteur[3]
 
             # Calculate remaining time in seconds
-            end_time = launch_time + timedelta(minutes= duree)
-            remaining_time = max((end_time - datetime.now()).total_seconds(), 0)
+            end_time = launch_time + timedelta(hours=duree)
+            remaining_time = max((end_time - datetime.now()).total_seconds(), 0) / 3600
 
             # If time is up, set 'terminee' to 0 in the database
             if remaining_time == 0 :
@@ -335,7 +336,8 @@ def profile(user_id):
                         SELECT matricule, nom_prenom , email, etudiants.intitulé_dep
                         FROM etudiants 
                         JOIN departement ON etudiants.intitulé_dep = departement.intitulé_dep
-                        WHERE etudiants.matricule = %s ;
+                        WHERE etudiants.matricule = %s 
+                        ORDER BY lib_annee_univ DESC LIMIT 1;
                     """, (user_id,))
             user_data = cur.fetchone()
 
