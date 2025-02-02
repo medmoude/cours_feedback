@@ -142,19 +142,22 @@
                     {% endwith %}
 
                     <form action="{{url_for('changer_mot_de_pass')}}" method="POST">
-                        <div class="input-group">
+                        <div class="input-group mot-de-pass">
                             <label for="actuel-mot-de-pass">Actuel mot de passe</label>
                             <input type="password" id="actuel-mot-de-pass" name="actuel-mot-de-pass" required>
+                            <i class="eye-icon fas fa-eye" onclick="togglePassword('actuel-mot-de-pass', this)"></i>
                         </div>
                 
-                        <div class="input-group">
+                        <div class="input-group mot-de-pass">
                             <label for="nouveau-mot-de-pass">Nouveau mot de pass</label>
                             <input type="password" id="nouveau-mot-de-pass" name="nouveau-mot-de-pass" required>
+                            <i class="eye-icon fas fa-eye" onclick="togglePassword('nouveau-mot-de-pass', this)"></i>
                         </div>
                 
-                        <div class="input-group">
+                        <div class="input-group mot-de-pass">
                             <label for="confirmer-mot-de-pass">Confirmer Nouveau mot de pass</label>
                             <input type="password" id="confirmer-mot-de-pass" name="confirmer-mot-de-pass" required>
+                            <i class="eye-icon fas fa-eye" onclick="togglePassword('confirmer-mot-de-pass', this)"></i>
                         </div>
                 
                         <button type="submit" class="submit-btn">Changer mot de pass</button>
@@ -192,6 +195,22 @@
       document.addEventListener('click', function() {
         clearTimeout(); // Cancel any scheduled action
     });
+    </script>
+
+    <script>
+      function togglePassword(inputId, iconElement) {
+          let passwordInput = document.getElementById(inputId);
+
+          if (passwordInput.type === "password") {
+              passwordInput.type = "text";
+              iconElement.classList.remove("fa-eye");
+              iconElement.classList.add("fa-eye-slash");
+          } else {
+              passwordInput.type = "password";
+              iconElement.classList.remove("fa-eye-slash");
+              iconElement.classList.add("fa-eye");
+          }
+      }
     </script>
     
     <!--   Core JS Files   -->

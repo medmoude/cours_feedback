@@ -91,6 +91,12 @@
     top: 10px;
     color: #262626;
   }
+
+  .eye-icon{
+    position: absolute;
+    right: 10px;
+    top: 60%
+  }
   
   .loginBox input[type="submit"] {
     border: none;

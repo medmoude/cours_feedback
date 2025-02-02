@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/login.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Login</title>
 </head>
 <body>
@@ -25,7 +26,8 @@
             <form action="{{ url_for('login') }}" method="post">
                 <div class="inputBox">
                     <input id="email" type="text" name="email" placeholder="Email ou matricule">
-                    <input id="mot-de-pass" type="password" name="mot-de-pass" placeholder="Mot de passe"> 
+                    <input id="mot-de-pass" type="password" name="mot-de-pass" placeholder="Mot de passe">
+                    <i class="eye-icon fas fa-eye" style="color: gray;" onclick="togglePassword('mot-de-pass', this )"></i>
                 </div> 
                 <input type="submit" name="" value="Se connecter">
             </form> 
@@ -45,6 +47,22 @@
         document.addEventListener('click', function() {
         clearTimeout(); // Cancel any scheduled action
         });
+    </script>
+
+    <script>
+        function togglePassword(inputId, iconElement) {
+            let passwordInput = document.getElementById(inputId);
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                iconElement.classList.remove("fa-eye");
+                iconElement.classList.add("fa-eye-slash");
+            } else {
+                passwordInput.type = "password";
+                iconElement.classList.remove("fa-eye-slash");
+                iconElement.classList.add("fa-eye");
+            }
+        }
     </script>
 </body>
 </html>
