@@ -107,7 +107,7 @@ def index():
 
             # Calculate remaining time in seconds
             end_time = launch_time + timedelta(hours=duree)
-            remaining_time = max((end_time - datetime.now()).total_seconds(), 0) / 3600
+            remaining_time = max((end_time - datetime.now()).total_seconds(), 0) 
 
             # If time is up, set 'terminee' to 0 in the database
             if remaining_time == 0 :
@@ -1027,7 +1027,7 @@ def parametres():
             terminee = miniteur[3]
 
             # Calculate remaining time in seconds
-            end_time = launch_time + timedelta(minutes= duree)
+            end_time = launch_time + timedelta(hours= duree)
             remaining_time = max((end_time - datetime.now()).total_seconds(), 0)
 
             # If time is up, set 'terminee' to 0 in the database
