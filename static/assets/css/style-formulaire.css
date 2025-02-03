@@ -42,7 +42,7 @@ textarea {
     margin-bottom: 20px;
 }
 
-button {
+button.ajouter {
     display: block;
     width: 100px;
     padding: 5px;
@@ -55,6 +55,7 @@ button {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 
 /*width: 100px;padding: 3px; margin: 10px 40px;*/
 

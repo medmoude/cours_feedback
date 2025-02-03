@@ -165,12 +165,12 @@
                 {% if annee[3] == 'Actif' and not etudiants %}
                   <form action="{{url_for('ajouter_promotion')}}" method="post" enctype="multipart/form-data" id="file-form">
                     <input type="file" name="promotion-file" id="promotion-file">
-                    <button type="submit">Ajouter</button> <br> <br>
+                    <button class="ajouter" type="submit">Ajouter</button> <br> <br>
                   </form>
                 {% else %}
                   <form action="#" method="post" enctype="multipart/form-data" id="file-form">
                     <input type="file" name="promotion-file" id="promotion-file" disabled>
-                    <button type="submit" style="opacity: 0.5; pointer-events: none;" disabled >Ajouter</button> <br> <br>
+                    <button class="ajouter" type="submit" style="opacity: 0.5; pointer-events: none;" disabled >Ajouter</button> <br> <br>
                   </form>
                   {% if annee[3] != 'Archivée' and etudiants %}
                     <form class="seul-etudiant" action="{{url_for('ajouter_etudiant')}}" method="post">
@@ -183,7 +183,7 @@
                           <option value="{{departement[0]}}">{{departement[0]}}</option>
                         {% endfor %}
                       </select>
-                      <input type="submit" value="Ajouter">
+                      <input type="submit" value="Ajouter" >
                     </form>
                   {% endif %}
                 {% endif %}
